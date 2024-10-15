@@ -14,5 +14,6 @@ namespace MVS_Noticias_API.Data
         public DbSet<NotificationsSettings> NotificationsSettings { get; set; }
         public DbSet<AccessibilitySettings> AccessibilitySettings { get; set; }
         public DbSet<SavedNews> SavedNews { get; set; }
+        public DbSet<SavedVideos> SavedVideos { get; set; }
     }
 }
