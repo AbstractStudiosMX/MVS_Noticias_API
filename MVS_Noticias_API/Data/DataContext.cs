@@ -1,21 +1,18 @@
-﻿using MVS_Noticias_API.Models.Domain;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using MVS_Noticias_API.Models.Domain;
+using MVS_Noticias_API.Models.Saved;
+using MVS_Noticias_API.Models.Settings;
 
 namespace MVS_Noticias_API.Data
 {
-    public class DataContext : IdentityDbContext<User>
+    public class DataContext:DbContext
     {
-        public DataContext(DbContextOptions<DataContext> options) : base(options)
-        {
-
-        }
-
-        protected override void OnModelCreating(ModelBuilder builder)
-        {
-            base.OnModelCreating(builder);
-        }
+        public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<CustomSettings> CustomSettings { get; set; }
+        public DbSet<NotificationsSettings> NotificationsSettings { get; set; }
+        public DbSet<AccessibilitySettings> AccessibilitySettings { get; set; }
+        public DbSet<SavedNews> SavedNews { get; set; }
     }
 }

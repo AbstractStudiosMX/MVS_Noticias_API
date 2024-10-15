@@ -1,4 +1,4 @@
-@MVS_Noticias_API_HostAddress = http://localhost:5077
+@MVS_Noticias_API_HostAddress = http://localhost:5058
 
 GET {{MVS_Noticias_API_HostAddress}}/weatherforecast/
 Accept: application/json
