@@ -25,93 +25,100 @@ namespace MVS_Noticias_API.Controllers
         public async Task<ActionResult<WeatherForecast>> GetWeatherForecast(float latitude, float longuitude, string city)
         {
             _logger.LogInformation("Starting weather forecast process.");
-
-            var APIkeyOP = _configuration.GetSection("AppSettings:OpenWeatherApiKey").Value;
-            var APIkeyWA = _configuration.GetSection("AppSettings:WeatherApiKey").Value;
-            var httpClient = new HttpClient();
-            var responseWeather = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&appid={2}", latitude, longuitude, APIkeyOP));
-            var responseAirPollution = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/air_pollution?lat={0}&lon={1}&appid={2}", latitude, longuitude, APIkeyOP));
-            var responseForecastDay = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/forecast?lat={0}&lon={1}&appid={2}", latitude, longuitude, APIkeyOP));
-            var responseForecastHour = await httpClient.GetStringAsync(string.Format("https://api.weatherapi.com/v1/forecast.json?key={0}&q={1}", APIkeyWA, city));
-
-            var weatherData = JsonConvert.DeserializeObject<dynamic>(responseWeather);
-            var AirPollitionData = JsonConvert.DeserializeObject<dynamic>(responseAirPollution);
-            var HourForecastData = JsonConvert.DeserializeObject<dynamic>(responseForecastHour);
-            var DailyForecastData = JsonConvert.DeserializeObject<dynamic>(responseForecastDay);
-
-            long unixTime = weatherData.dt;
-            int timezoneOffset = weatherData.timezone;
-            DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).UtcDateTime.AddSeconds(timezoneOffset);
-            string formattedDateTime = dateTime.ToString("ddd hh:mm tt", new System.Globalization.CultureInfo("es-ES"));
-
-            int aqi = AirPollitionData.list[0].main.aqi;
-            string airQuality = GetAirQualityDescription(aqi);
-            float windSpeedKmH = weatherData.wind.speed * 3.6;
-            string formattedWindSpeed = $"{windSpeedKmH} km/h";
-
-            var forecast = new WeatherForecast
+            try
             {
-                Condition = weatherData.weather[0].description,
-                CurrentTemperature = weatherData.main.temp - 273.15f,
-                RealFeelTemperature = weatherData.main.feels_like - 273.15f,
-                City = weatherData.name,
-                CurrentDateTime = formattedDateTime,
-                MaxTemperature = weatherData.main.temp_max - 273.15f,
-                MinTemperature = weatherData.main.temp_min - 273.15f,
-                AirQuality = airQuality,
-                WindSpeed = formattedWindSpeed,
-                Humidity = weatherData.main.humidity,
-            };
+                var APIkeyOP = _configuration.GetSection("AppSettings:OpenWeatherApiKey").Value;
+                var APIkeyWA = _configuration.GetSection("AppSettings:WeatherApiKey").Value;
+                var httpClient = new HttpClient();
+                var responseWeather = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&appid={2}", latitude, longuitude, APIkeyOP));
+                var responseAirPollution = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/air_pollution?lat={0}&lon={1}&appid={2}", latitude, longuitude, APIkeyOP));
+                var responseForecastDay = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/forecast?lat={0}&lon={1}&appid={2}", latitude, longuitude, APIkeyOP));
+                var responseForecastHour = await httpClient.GetStringAsync(string.Format("https://api.weatherapi.com/v1/forecast.json?key={0}&q={1}", APIkeyWA, city));
 
-            foreach (var hour in HourForecastData.forecast.forecastday[0].hour)
-            {
-                DateTime hourFullDate = hour.time;
-                string formattedHour = hourFullDate.ToString("hh:mm tt", new System.Globalization.CultureInfo("es-ES"));
+                var weatherData = JsonConvert.DeserializeObject<dynamic>(responseWeather);
+                var AirPollitionData = JsonConvert.DeserializeObject<dynamic>(responseAirPollution);
+                var HourForecastData = JsonConvert.DeserializeObject<dynamic>(responseForecastHour);
+                var DailyForecastData = JsonConvert.DeserializeObject<dynamic>(responseForecastDay);
 
-                var hourForecast = new HourlyForecast
+                long unixTime = weatherData.dt;
+                int timezoneOffset = weatherData.timezone;
+                DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).UtcDateTime.AddSeconds(timezoneOffset);
+                string formattedDateTime = dateTime.ToString("ddd hh:mm tt", new System.Globalization.CultureInfo("es-ES"));
+
+                int aqi = AirPollitionData.list[0].main.aqi;
+                string airQuality = GetAirQualityDescription(aqi);
+                float windSpeedKmH = weatherData.wind.speed * 3.6;
+                string formattedWindSpeed = $"{windSpeedKmH} km/h";
+
+                var forecast = new WeatherForecast
                 {
-                    Hour = formattedHour,
-                    Condition = hour.condition.text,
-                    Humidity = hour.humidity,
-                    Temperature = hour.temp_c
+                    Condition = weatherData.weather[0].description,
+                    CurrentTemperature = weatherData.main.temp - 273.15f,
+                    RealFeelTemperature = weatherData.main.feels_like - 273.15f,
+                    City = weatherData.name,
+                    CurrentDateTime = formattedDateTime,
+                    MaxTemperature = weatherData.main.temp_max - 273.15f,
+                    MinTemperature = weatherData.main.temp_min - 273.15f,
+                    AirQuality = airQuality,
+                    WindSpeed = formattedWindSpeed,
+                    Humidity = weatherData.main.humidity,
                 };
-                forecast.HourlyForecasts.Add(hourForecast);
-            }
 
-
-            var dailyForecast = new List<DailyForecast>();
-            bool isFirstDay = true;
-            var seenDays = new HashSet<string>();
-
-            foreach (var day in DailyForecastData.list)
-            {
-                DateTime dayFullDate = day.dt_txt;
-                string formattedDay = dayFullDate.ToString("ddd", new System.Globalization.CultureInfo("es-ES"));
-                string formattedDate = dayFullDate.ToString("M/d", new System.Globalization.CultureInfo("es-ES"));
-
-                if (isFirstDay)
+                foreach (var hour in HourForecastData.forecast.forecastday[0].hour)
                 {
-                    formattedDay = "Hoy";
-                    isFirstDay = false;
-                }
-                if (!seenDays.Contains(formattedDate))
-                {
-                    seenDays.Add(formattedDate);
-                    var dayForecast = new DailyForecast
+                    DateTime hourFullDate = hour.time;
+                    string formattedHour = hourFullDate.ToString("hh:mm tt", new System.Globalization.CultureInfo("es-ES"));
+
+                    var hourForecast = new HourlyForecast
                     {
-                        Day = formattedDay,
-                        Date = formattedDate,
-                        Condition = day.weather[0].description,
-                        MaxTemperature = day.main.temp_max - 273.15f,
-                        MinTemperature = day.main.temp_min - 273.15f,
-                        PrecipitationChance = day.pop * 100f,
+                        Hour = formattedHour,
+                        Condition = hour.condition.text,
+                        Humidity = hour.humidity,
+                        Temperature = hour.temp_c
                     };
-                    forecast.DailyForecasts.Add(dayForecast);
+                    forecast.HourlyForecasts.Add(hourForecast);
                 }
-                   
-            }
 
-            return Ok(forecast);
+
+                var dailyForecast = new List<DailyForecast>();
+                bool isFirstDay = true;
+                var seenDays = new HashSet<string>();
+
+                foreach (var day in DailyForecastData.list)
+                {
+                    DateTime dayFullDate = day.dt_txt;
+                    string formattedDay = dayFullDate.ToString("ddd", new System.Globalization.CultureInfo("es-ES"));
+                    string formattedDate = dayFullDate.ToString("M/d", new System.Globalization.CultureInfo("es-ES"));
+
+                    if (isFirstDay)
+                    {
+                        formattedDay = "Hoy";
+                        isFirstDay = false;
+                    }
+                    if (!seenDays.Contains(formattedDate))
+                    {
+                        seenDays.Add(formattedDate);
+                        var dayForecast = new DailyForecast
+                        {
+                            Day = formattedDay,
+                            Date = formattedDate,
+                            Condition = day.weather[0].description,
+                            MaxTemperature = day.main.temp_max - 273.15f,
+                            MinTemperature = day.main.temp_min - 273.15f,
+                            PrecipitationChance = day.pop * 100f,
+                        };
+                        forecast.DailyForecasts.Add(dayForecast);
+                    }
+
+                }
+
+                return Ok(forecast);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error getting weather forecast: " + ex.Message);
+                return BadRequest("Error getting weather forecas.");
+            }
         }
 
         private string GetAirQualityDescription(int aqi) 
