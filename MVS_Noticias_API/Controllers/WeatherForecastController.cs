@@ -22,37 +22,67 @@ namespace MVS_Noticias_API.Controllers
         }
 
         [HttpGet("weatherforecast")]
-        public async Task<ActionResult<WeatherForecast>> GetWeatherForecast(float latitude, float longuitude, string city)
+        public async Task<ActionResult<WeatherForecast>> GetWeatherForecast(float? latitude, float? longuitude, string? city)
         {
             _logger.LogInformation("Starting weather forecast process.");
+
             try
             {
                 var APIkeyOP = _configuration.GetSection("AppSettings:OpenWeatherApiKey").Value;
                 var APIkeyWA = _configuration.GetSection("AppSettings:WeatherApiKey").Value;
                 var httpClient = new HttpClient();
-                var responseWeather = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&appid={2}", latitude, longuitude, APIkeyOP));
-                var responseAirPollution = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/air_pollution?lat={0}&lon={1}&appid={2}", latitude, longuitude, APIkeyOP));
-                var responseForecastDay = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/forecast?lat={0}&lon={1}&appid={2}", latitude, longuitude, APIkeyOP));
-                var responseForecastHour = await httpClient.GetStringAsync(string.Format("https://api.weatherapi.com/v1/forecast.json?key={0}&q={1}", APIkeyWA, city));
+                string language = "es";
 
-                var weatherData = JsonConvert.DeserializeObject<dynamic>(responseWeather);
-                var AirPollitionData = JsonConvert.DeserializeObject<dynamic>(responseAirPollution);
-                var HourForecastData = JsonConvert.DeserializeObject<dynamic>(responseForecastHour);
-                var DailyForecastData = JsonConvert.DeserializeObject<dynamic>(responseForecastDay);
+                dynamic weatherData = null;
+                dynamic AirPollutionData = null;
+                dynamic HourForecastData = null;
+                dynamic DailyForecastData = null;
+
+                if (latitude != null && longuitude != null && city == null) 
+                {
+                    var responseWeather = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&appid={2}&lang={3}", latitude, longuitude, APIkeyOP, language));
+                    var responseAirPollution = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/air_pollution?lat={0}&lon={1}&appid={2}&lang={3}&lang={3}", latitude, longuitude, APIkeyOP, language));
+                    var responseForecastDay = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/forecast?lat={0}&lon={1}&appid={2}&lang={3}", latitude, longuitude, APIkeyOP, language));
+                    
+                    weatherData = JsonConvert.DeserializeObject<dynamic>(responseWeather);
+                    AirPollutionData = JsonConvert.DeserializeObject<dynamic>(responseAirPollution);
+                    DailyForecastData = JsonConvert.DeserializeObject<dynamic>(responseForecastDay);
+
+                    var responseForecastHour = await httpClient.GetStringAsync(string.Format("https://api.weatherapi.com/v1/forecast.json?key={0}&q={1}&lang={2}", APIkeyWA, weatherData.name, language));
+                    HourForecastData = JsonConvert.DeserializeObject<dynamic>(responseForecastHour);
+
+                }
+                if (latitude == null && longuitude == null && city != null) 
+                {
+                    var responseForecastHour = await httpClient.GetStringAsync(string.Format("https://api.weatherapi.com/v1/forecast.json?key={0}&q={1}&lang={2}", APIkeyWA, city, language));
+                    HourForecastData = JsonConvert.DeserializeObject<dynamic>(responseForecastHour);
+                    
+                    var responseWeather = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/weather?lat={0}&lon={1}&appid={2}&lang={3}", HourForecastData.location.lat, HourForecastData.location.lon, APIkeyOP, language));
+                    var responseAirPollution = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/air_pollution?lat={0}&lon={1}&appid={2}&lang={3}&lang={3}", HourForecastData.location.lat, HourForecastData.location.lon, APIkeyOP, language));
+                    var responseForecastDay = await httpClient.GetStringAsync(string.Format("https://api.openweathermap.org/data/2.5/forecast?lat={0}&lon={1}&appid={2}&lang={3}", HourForecastData.location.lat, HourForecastData.location.lon, APIkeyOP, language));
+                    
+                    weatherData = JsonConvert.DeserializeObject<dynamic>(responseWeather);
+                    AirPollutionData = JsonConvert.DeserializeObject<dynamic>(responseAirPollution);
+                    DailyForecastData = JsonConvert.DeserializeObject<dynamic>(responseForecastDay);
+                }
 
                 long unixTime = weatherData.dt;
                 int timezoneOffset = weatherData.timezone;
                 DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).UtcDateTime.AddSeconds(timezoneOffset);
                 string formattedDateTime = dateTime.ToString("ddd hh:mm tt", new System.Globalization.CultureInfo("es-ES"));
+                formattedDateTime = char.ToUpper(formattedDateTime[0]) + formattedDateTime.Substring(1);
 
-                int aqi = AirPollitionData.list[0].main.aqi;
+                int aqi = AirPollutionData.list[0].main.aqi;
                 string airQuality = GetAirQualityDescription(aqi);
                 float windSpeedKmH = weatherData.wind.speed * 3.6;
                 string formattedWindSpeed = $"{windSpeedKmH} km/h";
 
+                string description = weatherData.weather[0].description;
+                string formattedDescription = char.ToUpper(description[0]) + description.Substring(1).ToLower();
+
                 var forecast = new WeatherForecast
                 {
-                    Condition = weatherData.weather[0].description,
+                    Condition = formattedDescription,
                     CurrentTemperature = weatherData.main.temp - 273.15f,
                     RealFeelTemperature = weatherData.main.feels_like - 273.15f,
                     City = weatherData.name,
@@ -88,7 +118,10 @@ namespace MVS_Noticias_API.Controllers
                 {
                     DateTime dayFullDate = day.dt_txt;
                     string formattedDay = dayFullDate.ToString("ddd", new System.Globalization.CultureInfo("es-ES"));
+                    formattedDay = char.ToUpper(formattedDay[0]) + formattedDay.Substring(1);
                     string formattedDate = dayFullDate.ToString("M/d", new System.Globalization.CultureInfo("es-ES"));
+                    string dayDescription = day.weather[0].description;
+                    string formattedDayDescription = char.ToUpper(dayDescription[0]) + dayDescription.Substring(1).ToLower();
 
                     if (isFirstDay)
                     {
@@ -102,7 +135,7 @@ namespace MVS_Noticias_API.Controllers
                         {
                             Day = formattedDay,
                             Date = formattedDate,
-                            Condition = day.weather[0].description,
+                            Condition = formattedDayDescription,
                             MaxTemperature = day.main.temp_max - 273.15f,
                             MinTemperature = day.main.temp_min - 273.15f,
                             PrecipitationChance = day.pop * 100f,
