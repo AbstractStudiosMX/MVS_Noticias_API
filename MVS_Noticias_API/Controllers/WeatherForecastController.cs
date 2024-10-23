@@ -79,10 +79,13 @@ namespace MVS_Noticias_API.Controllers
 
                 string description = weatherData.weather[0].description;
                 string formattedDescription = char.ToUpper(description[0]) + description.Substring(1).ToLower();
+                string formattedIcon = weatherData.weather[0].icon;
+                formattedIcon = formattedIcon.Remove(2, 1);
 
                 var forecast = new WeatherForecast
                 {
                     Condition = formattedDescription,
+                    ConditionIcon = formattedIcon,
                     CurrentTemperature = weatherData.main.temp - 273.15f,
                     RealFeelTemperature = weatherData.main.feels_like - 273.15f,
                     City = weatherData.name,
@@ -98,11 +101,14 @@ namespace MVS_Noticias_API.Controllers
                 {
                     DateTime hourFullDate = hour.time;
                     string formattedHour = hourFullDate.ToString("hh:mm tt", new System.Globalization.CultureInfo("es-ES"));
+                    string IconHour = hour.condition.icon;
+                    string formattedIconHour = SetWeatherIconCode(IconHour);
 
                     var hourForecast = new HourlyForecast
                     {
                         Hour = formattedHour,
                         Condition = hour.condition.text,
+                        ConditionIcon = formattedIconHour,
                         Humidity = hour.humidity,
                         Temperature = hour.temp_c
                     };
@@ -122,6 +128,8 @@ namespace MVS_Noticias_API.Controllers
                     string formattedDate = dayFullDate.ToString("M/d", new System.Globalization.CultureInfo("es-ES"));
                     string dayDescription = day.weather[0].description;
                     string formattedDayDescription = char.ToUpper(dayDescription[0]) + dayDescription.Substring(1).ToLower();
+                    string formattedIconDay = day.weather[0].icon;
+                    formattedIconDay = formattedIconDay.Remove(2, 1);
                     var maxTemp = day.main.temp_max - 273.15f;
                     var minTemp = day.main.temp_min - 273.15f;
 
@@ -140,6 +148,7 @@ namespace MVS_Noticias_API.Controllers
                             Day = formattedDay,
                             Date = formattedDate,
                             Condition = formattedDayDescription,
+                            ConditionIcon = formattedIconDay,
                             MaxTemperature = maxTemp,
                             MinTemperature = minTemp,
                             PrecipitationChance = day.pop * 100f,
@@ -171,6 +180,77 @@ namespace MVS_Noticias_API.Controllers
                     return "Pobre";
                 case 5:
                     return "Insalubre";
+                default:
+                    return "Desconocido";
+            }
+        }
+
+        private string SetWeatherIconCode(string iconURL)
+        {
+            int lastSlashIndex = iconURL.LastIndexOf('/') + 1;
+            int dotPngIndex = iconURL.LastIndexOf('.');
+
+            string resultURL = iconURL.Substring(lastSlashIndex, dotPngIndex - lastSlashIndex);
+
+            switch (resultURL)
+            {
+                case "113":
+                    return "01";
+                case "116":
+                    return "02";
+                case "119":
+                    return "03";
+                case "122":
+                    return "04";
+                case "296":
+                case "302":
+                case "308":
+                    return "09";
+                case "176":
+                case "293":
+                case "299":
+                case "305":
+                case "353":
+                case "356":
+                case "362":
+                case "365":
+                    return "10";
+                case "200":
+                case "359":
+                case "386":
+                case "389":
+                case "392":
+                    return "11";
+                case "179":
+                case "182":
+                case "185":
+                case "227":
+                case "230":
+                case "260":
+                case "263":
+                case "266":
+                case "281":
+                case "284":
+                case "311":
+                case "314":
+                case "317":
+                case "320":
+                case "323":
+                case "326":
+                case "329":
+                case "332":
+                case "335":
+                case "338":
+                case "350":
+                case "368":
+                case "371":
+                case "374":
+                case "377":
+                case "395":
+                    return "13";
+                case "143":
+                case "248":
+                    return "50";
                 default:
                     return "Desconocido";
             }
