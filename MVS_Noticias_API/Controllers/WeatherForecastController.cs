@@ -87,11 +87,11 @@ namespace MVS_Noticias_API.Controllers
                     RealFeelTemperature = weatherData.main.feels_like - 273.15f,
                     City = weatherData.name,
                     CurrentDateTime = formattedDateTime,
-                    MaxTemperature = weatherData.main.temp_max - 273.15f,
-                    MinTemperature = weatherData.main.temp_min - 273.15f,
+                    MaxTemperature = HourForecastData.forecast.forecastday[0].day.maxtemp_c,
+                    MinTemperature = HourForecastData.forecast.forecastday[0].day.mintemp_c,
                     AirQuality = airQuality,
                     WindSpeed = formattedWindSpeed,
-                    Humidity = weatherData.main.humidity,
+                    Humidity = HourForecastData.current.humidity,
                 };
 
                 foreach (var hour in HourForecastData.forecast.forecastday[0].hour)
@@ -122,11 +122,15 @@ namespace MVS_Noticias_API.Controllers
                     string formattedDate = dayFullDate.ToString("M/d", new System.Globalization.CultureInfo("es-ES"));
                     string dayDescription = day.weather[0].description;
                     string formattedDayDescription = char.ToUpper(dayDescription[0]) + dayDescription.Substring(1).ToLower();
+                    var maxTemp = day.main.temp_max - 273.15f;
+                    var minTemp = day.main.temp_min - 273.15f;
 
                     if (isFirstDay)
                     {
                         formattedDay = "Hoy";
                         isFirstDay = false;
+                        maxTemp = HourForecastData.forecast.forecastday[0].day.maxtemp_c;
+                        minTemp = HourForecastData.forecast.forecastday[0].day.mintemp_c;
                     }
                     if (!seenDays.Contains(formattedDate))
                     {
@@ -136,8 +140,8 @@ namespace MVS_Noticias_API.Controllers
                             Day = formattedDay,
                             Date = formattedDate,
                             Condition = formattedDayDescription,
-                            MaxTemperature = day.main.temp_max - 273.15f,
-                            MinTemperature = day.main.temp_min - 273.15f,
+                            MaxTemperature = maxTemp,
+                            MinTemperature = minTemp,
                             PrecipitationChance = day.pop * 100f,
                         };
                         forecast.DailyForecasts.Add(dayForecast);
