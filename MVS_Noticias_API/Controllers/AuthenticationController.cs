@@ -32,6 +32,8 @@ namespace MVS_Noticias_API.Controllers
 
             User user = new User ();
 
+            request.Password = "RegistroNuevo123**";
+
             if (request.Email == null || request.Email == "") 
             {
                 return BadRequest("Email is required to signup.");
