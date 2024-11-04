@@ -24,7 +24,7 @@ namespace MVS_Noticias_API.Controllers
         }
 
         [HttpGet("videoStatistics")]
-        public async Task<ActionResult<VideoStatistics>> GetVideoStatistics(int seccion, int limite, int pagina)
+        public async Task<ActionResult<VideoStatistics>> GetVideoStatistics(int section, int limit, int page)
         {
             _logger.LogInformation("Starting video statistics process.");
 
@@ -33,7 +33,7 @@ namespace MVS_Noticias_API.Controllers
                 var APIkeyYoutube = _configuration.GetSection("AppSettings:YoutubeKey").Value;
                 var httpClient = new HttpClient();
                
-                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("https://mvsnoticias.com/a/api/noticias.asp?id_seccion={0}&contenido=si&limite={1}&pagina={2}", seccion, limite, pagina));
+                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("https://mvsnoticias.com/a/api/noticias.asp?id_seccion={0}&contenido=si&limite={1}&pagina={2}", section, limit, page));
                 var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                 var formattedNews = new List<VideoStatistics>();
