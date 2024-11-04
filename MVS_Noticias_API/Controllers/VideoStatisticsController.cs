@@ -5,6 +5,7 @@ using MVS_Noticias_API.Models.Statistics;
 using MVS_Noticias_API.Models.Weather;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace MVS_Noticias_API.Controllers
 {
@@ -23,7 +24,7 @@ namespace MVS_Noticias_API.Controllers
         }
 
         [HttpGet("videoStatistics")]
-        public async Task<ActionResult<VideoStatistics>> GetVideoStatistics(int seccion, int limite)
+        public async Task<ActionResult<VideoStatistics>> GetVideoStatistics(int seccion, int limite, int pagina)
         {
             _logger.LogInformation("Starting video statistics process.");
 
@@ -32,7 +33,7 @@ namespace MVS_Noticias_API.Controllers
                 var APIkeyYoutube = _configuration.GetSection("AppSettings:YoutubeKey").Value;
                 var httpClient = new HttpClient();
                
-                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("https://mvsnoticias.com/a/api/noticias.asp?id_seccion={0}&contenido=si&limite={1}", seccion, limite));
+                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("https://mvsnoticias.com/a/api/noticias.asp?id_seccion={0}&contenido=si&limite={1}&pagina={2}", seccion, limite, pagina));
                 var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                 var formattedNews = new List<VideoStatistics>();
@@ -74,14 +75,19 @@ namespace MVS_Noticias_API.Controllers
 
                     if (hasVideo) 
                     {
-                        var responseYoutube = await httpClient.GetStringAsync(string.Format("https://www.googleapis.com/youtube/v3/videos?part=statistics&id={0}&key={1}", videoId, APIkeyYoutube));
+                        var responseYoutube = await httpClient.GetStringAsync(string.Format("https://www.googleapis.com/youtube/v3/videos?part=statistics&part=contentDetails&id={0}&key={1}", videoId, APIkeyYoutube));
                         var youtubeData = JsonConvert.DeserializeObject<dynamic>(responseYoutube);
+                        string videoDuration = youtubeData.items[0].contentDetails.duration;
+                        TimeSpan duration = XmlConvert.ToTimeSpan(videoDuration);
+
+                        string formattedDuration = duration.ToString(@"h\:mm\:ss");
 
                         var newsTemp = new VideoStatistics
                         {
                             IdNews = news.id_noticia,
                             VideoURL = formattedVideoUrl,
                             ViewsNumber = youtubeData.items[0].statistics.viewCount,
+                            VideoDuration = formattedDuration,
                             ImageURL = news.foto_movil
                         };
                         formattedNews.Add(newsTemp);
@@ -94,6 +100,7 @@ namespace MVS_Noticias_API.Controllers
                             IdNews = news.id_noticia,
                             VideoURL = "",
                             ViewsNumber = 0,
+                            VideoDuration = "",
                             ImageURL = news.foto_movil,
                         };
                         formattedNews.Add(newsTemp);
