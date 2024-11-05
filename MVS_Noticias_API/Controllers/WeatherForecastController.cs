@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Graph;
 using Microsoft.IdentityModel.Tokens;
 using MVS_Noticias_API.Data;
 using MVS_Noticias_API.DataService;
@@ -80,7 +81,7 @@ namespace MVS_Noticias_API.Controllers
                 string description = weatherData.weather[0].description;
                 string formattedDescription = char.ToUpper(description[0]) + description.Substring(1).ToLower();
                 string formattedIcon = weatherData.weather[0].icon;
-                formattedIcon = formattedIcon.Remove(2, 1);
+                //formattedIcon = formattedIcon.Remove(2, 1);
 
                 var forecast = new WeatherForecast
                 {
@@ -102,7 +103,7 @@ namespace MVS_Noticias_API.Controllers
                     DateTime hourFullDate = hour.time;
                     string formattedHour = hourFullDate.ToString("hh:mm tt", new System.Globalization.CultureInfo("es-ES"));
                     string IconHour = hour.condition.icon;
-                    string formattedIconHour = SetWeatherIconCode(IconHour);
+                    string formattedIconHour = SetWeatherIconCode(IconHour,formattedHour);
 
                     var hourForecast = new HourlyForecast
                     {
@@ -129,7 +130,7 @@ namespace MVS_Noticias_API.Controllers
                     string dayDescription = day.weather[0].description;
                     string formattedDayDescription = char.ToUpper(dayDescription[0]) + dayDescription.Substring(1).ToLower();
                     string formattedIconDay = day.weather[0].icon;
-                    formattedIconDay = formattedIconDay.Remove(2, 1);
+                    //formattedIconDay = formattedIconDay.Remove(2, 1);
                     var maxTemp = day.main.temp_max - 273.15f;
                     var minTemp = day.main.temp_min - 273.15f;
 
@@ -185,27 +186,36 @@ namespace MVS_Noticias_API.Controllers
             }
         }
 
-        private string SetWeatherIconCode(string iconURL)
+        private string SetWeatherIconCode(string iconURL, string date)
         {
             int lastSlashIndex = iconURL.LastIndexOf('/') + 1;
             int dotPngIndex = iconURL.LastIndexOf('.');
 
             string resultURL = iconURL.Substring(lastSlashIndex, dotPngIndex - lastSlashIndex);
 
+            DateTime dateFormatted = DateTime.ParseExact(date, "hh:mm tt", new System.Globalization.CultureInfo("es-ES"));
+
+            string dayTime = "";
+
+            if (dateFormatted.Hour >= 19 || dateFormatted.Hour < 6) 
+            {
+                dayTime = "n";
+            }
+
             switch (resultURL)
             {
                 case "113":
-                    return "01";
+                    return "01" + dayTime;
                 case "116":
-                    return "02";
+                    return "02" + dayTime;
                 case "119":
-                    return "03";
+                    return "03" + dayTime;
                 case "122":
-                    return "04";
+                    return "04" + dayTime;
                 case "296":
                 case "302":
                 case "308":
-                    return "09";
+                    return "09" + dayTime;
                 case "176":
                 case "293":
                 case "299":
@@ -214,13 +224,13 @@ namespace MVS_Noticias_API.Controllers
                 case "356":
                 case "362":
                 case "365":
-                    return "10";
+                    return "10" + dayTime;
                 case "200":
                 case "359":
                 case "386":
                 case "389":
                 case "392":
-                    return "11";
+                    return "11" + dayTime;
                 case "179":
                 case "182":
                 case "185":
@@ -247,10 +257,10 @@ namespace MVS_Noticias_API.Controllers
                 case "374":
                 case "377":
                 case "395":
-                    return "13";
+                    return "13" + dayTime;
                 case "143":
                 case "248":
-                    return "50";
+                    return "50" + dayTime;
                 default:
                     return "Desconocido";
             }
