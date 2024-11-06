@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MVS_Noticias_API.Models.Domain;
+using MVS_Noticias_API.Models.Programming;
 using MVS_Noticias_API.Models.Saved;
 using MVS_Noticias_API.Models.Settings;
 
@@ -15,5 +16,6 @@ namespace MVS_Noticias_API.Data
         public DbSet<AccessibilitySettings> AccessibilitySettings { get; set; }
         public DbSet<SavedNews> SavedNews { get; set; }
         public DbSet<SavedVideos> SavedVideos { get; set; }
+        public DbSet<Programming> Programs { get; set; }
     }
 }
