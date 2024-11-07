@@ -1,4 +1,6 @@
-﻿namespace MVS_Noticias_API.DTO.Programming
+﻿using MVS_Noticias_API.Models.Programming;
+
+namespace MVS_Noticias_API.DTO.Programming
 {
     public class ProgrammingDto
     {
@@ -8,5 +10,7 @@
         public string BroadcastDay { get; set; } = string.Empty;
         public string UrlImage { get; set; } = string.Empty;
         public string UrlPersonalSite { get; set; } = string.Empty;
+
+        public List<BroadcastInfo> BroadcastDates { get; set; } = new List<BroadcastInfo>();
     }
 }

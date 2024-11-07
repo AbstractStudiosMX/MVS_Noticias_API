@@ -8,5 +8,7 @@
         public string BroadcastDay { get; set; } = string.Empty;
         public string UrlImage { get; set; } = string.Empty;
         public string UrlPersonalSite { get; set; } = string.Empty;
+
+        public List<BroadcastInfo> BroadcastDates { get; set; } = new List<BroadcastInfo>();
     }
 }

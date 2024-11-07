@@ -32,7 +32,7 @@ namespace MVS_Noticias_API.Controllers
 
             try
             {
-                var programs = await _dataContext.Programs.ToListAsync();
+                var programs = await _dataContext.Programs.Include(p => p.BroadcastDates).ToListAsync();
                 return Ok(programs);
             }
             catch (Exception ex)
@@ -57,10 +57,15 @@ namespace MVS_Noticias_API.Controllers
                 program.UrlImage = request.UrlImage;
                 program.UrlPersonalSite = request.UrlPersonalSite;
 
+                foreach (var date in request.BroadcastDates)
+                {
+                    program.BroadcastDates.Add(date);
+                }
+
                 _dataContext.Programs.Add(program);
                 await _dataContext.SaveChangesAsync();
                 _logger.LogInformation("Program registered successfully.");
-                return Ok(program);
+                return Ok(request);
             }
             catch (Exception e)
             {
@@ -88,6 +93,11 @@ namespace MVS_Noticias_API.Controllers
                 program.BroadcastDay = request.BroadcastDay;
                 program.UrlImage = request.UrlImage;
                 program.UrlPersonalSite = request.UrlPersonalSite;
+
+                for (int i = 0; i < request.BroadcastDates.Count; i++) 
+                {
+                    program.BroadcastDates[i] = request.BroadcastDates[i];
+                }
 
                 await _dataContext.SaveChangesAsync();
                 _logger.LogInformation("Program updated successfully.");
