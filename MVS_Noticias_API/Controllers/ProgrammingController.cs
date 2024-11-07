@@ -118,6 +118,7 @@ namespace MVS_Noticias_API.Controllers
             try
             {
                 var program = await _dataContext.Programs.FirstOrDefaultAsync(x => x.Id == programId);
+                var programDates = await _dataContext.BroadcastInfo.Where(p => p.ProgrammingId == programId).ToListAsync();
 
                 if (program == null)
                 {
@@ -125,6 +126,12 @@ namespace MVS_Noticias_API.Controllers
                 }
 
                 _dataContext.Programs.Remove(program);
+
+                foreach (var date in programDates)
+                {
+                    _dataContext.BroadcastInfo.Remove(date);
+                }
+
                 await _dataContext.SaveChangesAsync();
 
                 return Ok("Program successfully deleted");
