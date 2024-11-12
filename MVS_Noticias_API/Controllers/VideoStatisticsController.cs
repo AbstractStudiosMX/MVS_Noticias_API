@@ -85,6 +85,11 @@ namespace MVS_Noticias_API.Controllers
                         var newsTemp = new VideoStatistics
                         {
                             IdNews = news.id_noticia,
+                            Title = news.titulo,
+                            Autor = news.autor,
+                            Url = news.url,
+                            Date = news.fecha,
+                            Description = news.descripcion,
                             VideoURL = formattedVideoUrl,
                             ViewsNumber = youtubeData.items[0].statistics.viewCount,
                             VideoDuration = formattedDuration,
@@ -98,6 +103,11 @@ namespace MVS_Noticias_API.Controllers
                         var newsTemp = new VideoStatistics
                         {
                             IdNews = news.id_noticia,
+                            Title = news.titulo,
+                            Autor = news.autor,
+                            Url = news.url,
+                            Date = news.fecha,
+                            Description = news.descripcion,
                             VideoURL = "",
                             ViewsNumber = 0,
                             VideoDuration = "",
