@@ -31,11 +31,11 @@ namespace MVS_Noticias_API.Controllers
 
             try
             {
-                var url = "https://mvsnoticias.com/";
+                var mvsWebUrl = _configuration.GetSection("AppSettings:MVSNoticiasWeb").Value;
                 var newsTitles = new List<string>();
 
                 using var httpClient = new HttpClient();
-                var html = await httpClient.GetStringAsync(url);
+                var html = await httpClient.GetStringAsync(mvsWebUrl);
 
                 var htmlDoc = new HtmlDocument();
                 htmlDoc.LoadHtml(html);
@@ -52,10 +52,12 @@ namespace MVS_Noticias_API.Controllers
                 }
 
                 var mostReadNews = new List<CompleteNews>();
+                var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
 
                 foreach (var title in newsTitles)
                 {
-                    var responseNewsMVS = await httpClient.GetStringAsync(string.Format("https://mvsnoticias.com/a/api/noticias.asp?buscar={0}&limite=1&contenido=si",title));
+                    string cleanedTitle = title.Replace("'", "").Replace("\"", "");
+                    var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?buscar={1}&limite=1&contenido=si",apiEditor80,cleanedTitle));
                     var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                     var news = new CompleteNews
@@ -96,7 +98,7 @@ namespace MVS_Noticias_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError("Error getting video statistics: " + ex.Message);
-                return BadRequest("Error getting video statistics.");
+                return BadRequest("Error getting video statistics: " + ex.Message);
             }
         }
     }
