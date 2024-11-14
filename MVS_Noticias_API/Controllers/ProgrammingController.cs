@@ -38,7 +38,7 @@ namespace MVS_Noticias_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError("Error getting programming: " + ex.Message);
-                return BadRequest("Error getting programming.");
+                return BadRequest("Error getting programming: " + ex.Message);
             }
         }
 

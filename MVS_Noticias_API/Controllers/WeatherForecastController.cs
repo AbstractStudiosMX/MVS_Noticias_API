@@ -164,7 +164,7 @@ namespace MVS_Noticias_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError("Error getting weather forecast: " + ex.Message);
-                return BadRequest("Error getting weather forecast.");
+                return BadRequest("Error getting weather forecast: " + ex.Message);
             }
         }
 

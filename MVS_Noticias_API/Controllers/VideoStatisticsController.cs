@@ -30,10 +30,11 @@ namespace MVS_Noticias_API.Controllers
 
             try
             {
-                var APIkeyYoutube = _configuration.GetSection("AppSettings:YoutubeKey").Value;
+                var apiKeyYoutube = _configuration.GetSection("AppSettings:YoutubeKey").Value;
                 var httpClient = new HttpClient();
                
-                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("https://mvsnoticias.com/a/api/noticias.asp?id_seccion={0}&contenido=si&limite={1}&pagina={2}", section, limit, page));
+                var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
+                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_seccion={1}&contenido=si&limite={2}&pagina={3}", apiEditor80, section, limit, page));
                 var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                 var formattedNews = new List<VideoStatistics>();
@@ -75,7 +76,7 @@ namespace MVS_Noticias_API.Controllers
 
                     if (hasVideo) 
                     {
-                        var responseYoutube = await httpClient.GetStringAsync(string.Format("https://www.googleapis.com/youtube/v3/videos?part=statistics&part=contentDetails&id={0}&key={1}", videoId, APIkeyYoutube));
+                        var responseYoutube = await httpClient.GetStringAsync(string.Format("https://www.googleapis.com/youtube/v3/videos?part=statistics&part=contentDetails&id={0}&key={1}", videoId, apiKeyYoutube));
                         var youtubeData = JsonConvert.DeserializeObject<dynamic>(responseYoutube);
                         string videoDuration = youtubeData.items[0].contentDetails.duration;
                         TimeSpan duration = XmlConvert.ToTimeSpan(videoDuration);
@@ -122,7 +123,7 @@ namespace MVS_Noticias_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError("Error getting video statistics: " + ex.Message);
-                return BadRequest("Error getting video statistics.");
+                return BadRequest("Error getting video statistics: " + ex.Message);
             }
         }
     }
