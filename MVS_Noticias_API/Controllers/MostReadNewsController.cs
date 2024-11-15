@@ -32,7 +32,7 @@ namespace MVS_Noticias_API.Controllers
             try
             {
                 var mvsWebUrl = _configuration.GetSection("AppSettings:MVSNoticiasWeb").Value;
-                var newsTitles = new List<string>();
+                var newsIds = new List<int>();
 
                 using var httpClient = new HttpClient();
                 var html = await httpClient.GetStringAsync(mvsWebUrl);
@@ -44,20 +44,27 @@ namespace MVS_Noticias_API.Controllers
 
                 if (sectionNode != null)
                 {
-                    var titleNodes = sectionNode.SelectNodes(".//h3[@class='titulo']/span");
-                    foreach (var titleNode in titleNodes)
+                    var linkNodes = sectionNode.SelectNodes(".//div[@class='item']/article/a");
+                    foreach (var linkNode in linkNodes)
                     {
-                        newsTitles.Add(titleNode.InnerText.Trim());
+                        var href = linkNode.GetAttributeValue("href", string.Empty);
+                        if (!string.IsNullOrEmpty(href))
+                        {
+                            var idString = href.Split('-').LastOrDefault()?.Replace(".html", "");
+                            if (int.TryParse(idString, out int id))
+                            {
+                                newsIds.Add(id);
+                            }
+                        }
                     }
                 }
 
                 var mostReadNews = new List<CompleteNews>();
                 var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
 
-                foreach (var title in newsTitles)
+                foreach (var id in newsIds)
                 {
-                    string cleanedTitle = title.Replace("'", "").Replace("\"", "");
-                    var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?buscar={1}&limite=1&contenido=si",apiEditor80,cleanedTitle));
+                    var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si",apiEditor80,id));
                     var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                     var news = new CompleteNews
@@ -97,8 +104,8 @@ namespace MVS_Noticias_API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error getting video statistics: " + ex.Message);
-                return BadRequest("Error getting video statistics: " + ex.Message);
+                _logger.LogError("Error getting most read news: " + ex.Message);
+                return BadRequest("Error getting most read news: " + ex.Message);
             }
         }
     }
