@@ -81,12 +81,24 @@ namespace MVS_Noticias_API.Controllers
                 string description = weatherData.weather[0].description;
                 string formattedDescription = char.ToUpper(description[0]) + description.Substring(1).ToLower();
                 string formattedIcon = weatherData.weather[0].icon;
-                //formattedIcon = formattedIcon.Remove(2, 1);
+                string dayTime;
+
+                if (formattedIcon.EndsWith("d"))
+                {
+                    dayTime = "";
+                }
+                else
+                {
+                    dayTime = "n";
+                }
+
+                formattedIcon = formattedIcon.Remove(2, 1);
+
 
                 var forecast = new WeatherForecast
                 {
                     Condition = formattedDescription,
-                    ConditionIcon = formattedIcon,
+                    ConditionIcon = formattedIcon + dayTime,
                     CurrentTemperature = weatherData.main.temp - 273.15f,
                     RealFeelTemperature = weatherData.main.feels_like - 273.15f,
                     City = weatherData.name,
@@ -130,7 +142,7 @@ namespace MVS_Noticias_API.Controllers
                     string dayDescription = day.weather[0].description;
                     string formattedDayDescription = char.ToUpper(dayDescription[0]) + dayDescription.Substring(1).ToLower();
                     string formattedIconDay = day.weather[0].icon;
-                    //formattedIconDay = formattedIconDay.Remove(2, 1);
+                    formattedIconDay = formattedIconDay.Remove(2, 1);
                     var maxTemp = day.main.temp_max - 273.15f;
                     var minTemp = day.main.temp_min - 273.15f;
 
@@ -149,7 +161,7 @@ namespace MVS_Noticias_API.Controllers
                             Day = formattedDay,
                             Date = formattedDate,
                             Condition = formattedDayDescription,
-                            ConditionIcon = formattedIconDay,
+                            ConditionIcon = formattedIconDay + dayTime,
                             MaxTemperature = maxTemp,
                             MinTemperature = minTemp,
                             PrecipitationChance = day.pop * 100f,
