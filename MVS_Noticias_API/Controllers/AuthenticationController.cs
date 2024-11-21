@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure.Core;
+using FirebaseAdmin.Auth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MVS_Noticias_API.Data;
@@ -30,72 +32,110 @@ namespace MVS_Noticias_API.Controllers
         {
             _logger.LogInformation("Starting the registration process.");
 
-            User user = new User ();
-
-            request.Password = "RegistroNuevo123**";
-
-            if (request.Email == null || request.Email == "") 
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
             {
-                return BadRequest("Email is required to signup.");
+                return BadRequest("Email and Password are required.");
             }
-            if (request.Password == null || request.Password == "")
-            {
-                return BadRequest("Password is required to signup.");
-            }
-
-            user.FullName = "";
-            user.Username = "";
-            user.Email = request.Email;
-            user.PhoneNumber = "";
-            user.BirthDate = null;
-            user.Gender = "";
-            user.City = "";
-            user.IsEnabled = true;
-            user.RegisterDate = DateTime.Now.ToLocalTime();
-
-            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
 
             try
             {
+
+                var userRecordArgs = new UserRecordArgs
+                {
+                    Email = request.Email,
+                    Password = request.Password,
+                    DisplayName = request.Email
+                };
+
+                var userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(userRecordArgs);
+
+                var user = new User
+                {
+                    Email = request.Email,
+                    RegisterDate = DateTime.Now,
+                    IsEnabled = true,
+                    FirebaseUid = userRecord.Uid
+                };
+
                 _dataContext.Users.Add(user);
                 await _dataContext.SaveChangesAsync();
-                _logger.LogInformation("User registered successfully.");
+
                 return Ok(user);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "An error has ocurred.");
-                return BadRequest("Could not register user.");
+                return BadRequest("Could not register user." + e);
                 throw;
             }
         }
 
-        [HttpPost("login")]
-        public async Task<ActionResult<User>> Login(UserDto request)
+        [HttpPost("register-social")]
+        public async Task<ActionResult<string>> Register(string idToken)
         {
-            var user = _dataContext.Users.Where(x => x.Email == request.Email).FirstOrDefault();
-
-            if (user == null) 
+            try
             {
-                return BadRequest("User not found");
+                var verifiedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+
+                var uid = verifiedToken.Uid;
+                var email = verifiedToken.Claims["email"]?.ToString();
+
+                var user = new User
+                {
+                    Email = email,
+                    RegisterDate = DateTime.Now,
+                    IsEnabled = true,
+                    FirebaseUid = uid
+                };
+
+                _dataContext.Users.Add(user);
+                await _dataContext.SaveChangesAsync();
+
+                return Ok(new { Message = "User registered successfully", Uid = uid });
             }
-            if (!user.IsEnabled) 
+            catch (Exception ex)
             {
-                return BadRequest("User blocked");
+                return BadRequest($"Error registering user: {ex.Message}");
             }
-
-            if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt)) 
-            {
-                return BadRequest("Wrong password");
-            }
-
-            string token = CreateToken(user);
-
-            return Ok(token);
         }
 
+        [HttpPost("social-login")]
+        public async Task<ActionResult<string>> SocialLogin(string idToken)
+        {
+            try
+            {
+                var verifiedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+
+                var uid = verifiedToken.Uid;
+
+                return Ok(new { Message = "Login successful", Uid = uid });
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized($"Invalid token: {ex.Message}");
+            }
+        }
+
+        /* [HttpPost("login")]
+         public async Task<ActionResult<User>> Login(UserDto request)
+         {
+             var user = _dataContext.Users.Where(x => x.Email == request.Email).FirstOrDefault();
+
+             if (user == null) 
+             {
+                 return BadRequest("User not found");
+             }
+             if (!user.IsEnabled) 
+             {
+                 return BadRequest("User blocked");
+             }
+
+
+             string token = CreateToken(user);
+
+             return Ok(token);
+         }
+        */
         private string CreateToken(User user)
         {
             List<Claim> claims = new List<Claim>

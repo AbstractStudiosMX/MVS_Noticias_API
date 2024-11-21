@@ -1,3 +1,4 @@
+using FirebaseAdmin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -7,6 +8,7 @@ using NLog;
 using NLog.Web;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -15,6 +17,11 @@ logger.Debug("Init Main");
 try
 {
     // Add services to the container.
+    //Firebase 
+    FirebaseApp.Create(new AppOptions 
+    { 
+        Credential = GoogleCredential.FromFile("Firebase-Config.json")
+    });
     //CORS
     builder.Services.AddCors(c => { c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin()); });
     //SQL Connection
