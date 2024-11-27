@@ -2,6 +2,7 @@
 using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MVS_Noticias_API.Data;
 using MVS_Noticias_API.DataService;
@@ -37,6 +38,13 @@ namespace MVS_Noticias_API.Controllers
                 return BadRequest("Email and Password are required.");
             }
 
+            var isRegistred = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            if (isRegistred != null) 
+            {
+                return BadRequest("User already registered.");
+            }
+
             try
             {
 
@@ -52,6 +60,9 @@ namespace MVS_Noticias_API.Controllers
                 var user = new User
                 {
                     Email = request.Email,
+                    FullName = request.FullName,
+                    Username = request.UserName,
+                    //falta hasear la contrasena
                     RegisterDate = DateTime.Now,
                     IsEnabled = true,
                     FirebaseUid = userRecord.Uid
@@ -80,6 +91,13 @@ namespace MVS_Noticias_API.Controllers
                 var uid = verifiedToken.Uid;
                 var email = verifiedToken.Claims["email"]?.ToString();
 
+                var isRegistred = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+                if (isRegistred != null)
+                {
+                    return BadRequest("User already registered.");
+                }
+
                 var user = new User
                 {
                     Email = email,
@@ -99,7 +117,7 @@ namespace MVS_Noticias_API.Controllers
             }
         }
 
-        [HttpPost("social-login")]
+        [HttpPost("login")]
         public async Task<ActionResult<string>> SocialLogin(string idToken)
         {
             try
