@@ -1,12 +1,19 @@
-﻿namespace MVS_Noticias_API.Models.Currency
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace MVS_Noticias_API.Models.Currency
 {
     public class Currency
     {
+        public int Id { get; set; }
         public string From { get; set; }
         public string To { get; set; }
+        [Precision(19, 6)]
         public decimal ExchangeRate { get; set; }
+        [Precision(19, 6)]
         public decimal AbsoluteChange { get; set; }
+        [Precision(19, 6)]
         public decimal GrowthPercentage { get; set; }
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public long Timestamp { get; set; }
     }
 

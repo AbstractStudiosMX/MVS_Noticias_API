@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MVS_Noticias_API.Models.Currency;
 using MVS_Noticias_API.Models.Domain;
 using MVS_Noticias_API.Models.Programming;
 using MVS_Noticias_API.Models.Saved;
@@ -18,5 +19,6 @@ namespace MVS_Noticias_API.Data
         public DbSet<SavedVideos> SavedVideos { get; set; }
         public DbSet<Programming> Programs { get; set; }
         public DbSet<BroadcastInfo> BroadcastInfo { get; set; }
+        public DbSet<Currency> Currencies { get; set; }
     }
 }

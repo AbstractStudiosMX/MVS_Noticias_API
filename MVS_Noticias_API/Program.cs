@@ -9,6 +9,7 @@ using NLog.Web;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using Google.Apis.Auth.OAuth2;
+using MVS_Noticias_API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -17,6 +18,9 @@ logger.Debug("Init Main");
 try
 {
     // Add services to the container.
+    //Currency cron
+    builder.Services.AddHostedService<CurrencyUpdateService>();
+
     //Firebase 
     FirebaseApp.Create(new AppOptions 
     { 
