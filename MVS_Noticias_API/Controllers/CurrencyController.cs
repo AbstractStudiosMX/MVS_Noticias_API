@@ -38,9 +38,9 @@ namespace MVS_Noticias_API.Controllers
                 {
                     From = from,
                     To = to,
-                    ExchangeRate = currency.ExchangeRate,
-                    AbsoluteChange = currency.AbsoluteChange,
-                    GrowthPercentage = currency.GrowthPercentage,
+                    ExchangeRate = Math.Round(currency.ExchangeRate,4),
+                    AbsoluteChange = currency.AbsoluteChange * 10000,
+                    GrowthPercentage = Math.Round(currency.GrowthPercentage,4),
                     UpdatedAt = currency.UpdatedAt
                 };
 

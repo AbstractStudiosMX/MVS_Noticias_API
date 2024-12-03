@@ -52,7 +52,7 @@ namespace MVS_Noticias_API.Services
                 var httpClient = new HttpClient();
                 var apiKey = _configuration.GetSection("AppSettings:CurrencyApiKey").Value;
 
-                var currencies = new List<string> { "COP", "USD", "EUR", "MXN", "CHF" };
+                var currencies = new List<string> { "JPY", "USD", "EUR", "MXN", "GBP" };
                 foreach (var baseCurrency in currencies)
                 {
                     foreach (var targetCurrency in currencies)
