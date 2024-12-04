@@ -10,49 +10,49 @@ namespace MVS_Noticias_API.Controllers
         [HttpGet("sections")]
         public ActionResult<object> GetSections(bool includeSubsections)
         {
-            var sections = new List<dynamic>
+            var sections = new List<Section>
             {
-                new
+                new Section
                 {
                     Id = 751,
-                    Section = "Nacional",
-                    Subsection = new List<dynamic>
+                    Name = "Nacional",
+                    Subsections = new List<Subsection>
                     {
-                        new { Id = 762, Section = "Cdmx" },
-                        new { Id = 763, Section = "Estados" },
-                        new { Id = 764, Section = "Policiaca" }
+                        new Subsection { Id = 762, Name = "Cdmx" },
+                        new Subsection { Id = 763, Name = "Estados" },
+                        new Subsection { Id = 764, Name = "Policiaca" }
                     }
                 },
-                new
+                new Section
                 {
                     Id = 763,
-                    Section = "Estados",
-                    Subsection = new List<dynamic>
+                    Name = "Estados",
+                    Subsections = new List<Subsection>
                     {
-                        new { Id = 1779, Section = "Nuevo León" }
+                        new Subsection { Id = 1779, Name = "Nuevo León" }
                     }
                 },
-                new { Id = 752, Section = "Mundo", Subsection = new List<dynamic>() },
-                new { Id = 0,   Section = "Podcast", Subsection = new List<dynamic>() },
-                new { Id = 753, Section = "Economía", Subsection = new List<dynamic>() },
-                new { Id = 754, Section = "Entretenimiento", Subsection = new List<dynamic>() },
-                new
+                new Section { Id = 752, Name = "Mundo" },
+                new Section { Id = 655144, Name = "Podcast" },
+                new Section { Id = 753, Name = "Economía" },
+                new Section { Id = 754, Name = "Entretenimiento" },
+                new Section
                 {
                     Id = 755,
-                    Section = "Tendencias",
-                    Subsection = new List<dynamic>
+                    Name = "Tendencias",
+                    Subsections = new List<Subsection>
                     {
-                        new { Id = 766, Section = "Viral" },
-                        new { Id = 767, Section = "Salud y Bienestar" },
-                        new { Id = 768, Section = "Ciencia y Tecnología" },
-                        new { Id = 769, Section = "Mascotas" }
+                        new Subsection { Id = 766, Name = "Viral" },
+                        new Subsection { Id = 767, Name = "Salud y Bienestar" },
+                        new Subsection { Id = 768, Name = "Ciencia y Tecnología" },
+                        new Subsection { Id = 769, Name = "Mascotas" }
                     }
                 },
-                new { Id = 756, Section = "Opinión", Subsection = new List<dynamic>() },
-                new { Id = 758, Section = "Entrevistas", Subsection = new List<dynamic>() },
-                new { Id = 759, Section = "Video", Subsection = new List<dynamic>() },
-                new { Id = 760, Section = "Deportes", Subsection = new List<dynamic>() },
-                new { Id = 0,   Section = "Programación", Subsection = new List<dynamic>() }
+                new Section { Id = 756, Name = "Opinión" },
+                new Section { Id = 758, Name = "Entrevistas" },
+                new Section { Id = 759, Name = "Video" },
+                new Section { Id = 760, Name = "Deportes" },
+                new Section { Id = 788999, Name = "Programación" }
             };
 
             if (includeSubsections)
@@ -63,12 +63,21 @@ namespace MVS_Noticias_API.Controllers
             {
                 var flatList = new List<dynamic>();
 
+                
                 foreach (var section in sections)
                 {
-                    flatList.Add(new { Id = section.Id, Section = section.Section });
-                    foreach (var sub in section.Subsection)
+                    
+                    if (!flatList.Any(f => f.Id == section.Id))
                     {
-                        flatList.Add(new { Id = sub.Id, Section = sub.Section });
+                        flatList.Add(new { section.Id, Name = section.Name });
+                    }
+
+                    foreach (var subsection in section.Subsections)
+                    {
+                        if (!flatList.Any(f => f.Id == subsection.Id))
+                        {
+                            flatList.Add(new { subsection.Id, Name = subsection.Name });
+                        }
                     }
                 }
 
@@ -77,4 +86,17 @@ namespace MVS_Noticias_API.Controllers
         }
 
     }
+}
+
+public class Section
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public List<Subsection> Subsections { get; set; } = new List<Subsection>();
+}
+
+public class Subsection
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
 }

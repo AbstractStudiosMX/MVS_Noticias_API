@@ -182,8 +182,6 @@ namespace MVS_Noticias_API.Controllers
                 {
                     var settings = new CustomSettings
                     {
-                        Id = user.Id,
-                        UserId = user.Id,
                         NacionalOrder = 0,
                         CDMXOrder = 1,
                         EstadosOrder = 2,

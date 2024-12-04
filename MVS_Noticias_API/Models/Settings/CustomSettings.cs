@@ -5,9 +5,10 @@ namespace MVS_Noticias_API.Models.Settings
 {
     public class CustomSettings
     {
+        [JsonIgnore]
         public int Id { get; set; }
+        [JsonIgnore]
         public int UserId { get; set; }
-
         public int NacionalOrder { get; set; }
         public int CDMXOrder { get; set; }
         public int EstadosOrder { get; set; }
