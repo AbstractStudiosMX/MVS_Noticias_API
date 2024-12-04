@@ -180,7 +180,33 @@ namespace MVS_Noticias_API.Controllers
 
                 if (customSettings == null)
                 {
-                    return NotFound("Custom settings not found.");
+                    var settings = new CustomSettings
+                    {
+                        Id = user.Id,
+                        UserId = user.Id,
+                        NacionalOrder = 0,
+                        CDMXOrder = 1,
+                        EstadosOrder = 2,
+                        PoliciacaOrder = 3,
+                        NuevoLeonOrder = 4,
+                        MundoOrder = 5,
+                        PodcastOrder = 6,
+                        EconomiaOrder = 7,
+                        EntretenimientoOrder = 8,
+                        TendenciasOrder = 9,
+                        ViralOrder = 10,
+                        SaludBienestarOrder = 11,
+                        CienciaTecnologiaOrder = 12,
+                        MascotasOrder = 13,
+                        OpinionOrder = 14,
+                        EntrevistasOrder = 15,
+                        VideosOrder = 16,
+                        MVSDeportesOrder = 17,
+                        ProgramacionOrder = 18,
+                        GuardadosOrder = 19,
+                        MasLeidasOrder = 20,
+                    };
+                    return Ok(settings);
                 }
 
                 return Ok(customSettings);
@@ -214,6 +240,7 @@ namespace MVS_Noticias_API.Controllers
 
                 customSettings = new CustomSettings
                 {
+                    Id = 1,
                     UserId = user.Id,
                     GuardadosOrder = customSettingsDto.GuardadosOrder,
                     MasLeidasOrder = customSettingsDto.MasLeidasOrder,
@@ -231,9 +258,11 @@ namespace MVS_Noticias_API.Controllers
                     MascotasOrder = customSettingsDto.MascotasOrder,
                     SaludBienestarOrder = customSettingsDto.SaludBienestarOrder,
                     PoliciacaOrder = customSettingsDto.PoliciacaOrder,
-                    Programacion = customSettingsDto.Programacion,
+                    ProgramacionOrder = customSettingsDto.Programacion,
                     CienciaTecnologiaOrder = customSettingsDto.CienciaTecnologiaOrder,
-                    ViralOrder = customSettingsDto.ViralOrder
+                    ViralOrder = customSettingsDto.ViralOrder,
+                    NuevoLeonOrder = customSettingsDto.NuevoLeonOrder,
+                    PodcastOrder = customSettingsDto.PodcastOrder,
                 };
 
                 await _dataContext.CustomSettings.AddAsync(customSettings);
@@ -284,9 +313,11 @@ namespace MVS_Noticias_API.Controllers
                 customSettings.MascotasOrder = customSettingsDto.MascotasOrder;
                 customSettings.SaludBienestarOrder = customSettingsDto.SaludBienestarOrder;
                 customSettings.PoliciacaOrder = customSettingsDto.PoliciacaOrder;
-                customSettings.Programacion = customSettingsDto.Programacion;
+                customSettings.ProgramacionOrder = customSettingsDto.Programacion;
                 customSettings.CienciaTecnologiaOrder = customSettingsDto.CienciaTecnologiaOrder;
                 customSettings.ViralOrder = customSettingsDto.ViralOrder;
+                customSettings.NuevoLeonOrder = customSettingsDto.NuevoLeonOrder;
+                customSettings.PodcastOrder = customSettingsDto.PodcastOrder;
 
                 await _dataContext.SaveChangesAsync();
 

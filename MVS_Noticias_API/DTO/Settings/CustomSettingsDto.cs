@@ -22,5 +22,7 @@
         public int Programacion { get; set; }
         public int CienciaTecnologiaOrder { get; set; }
         public int ViralOrder { get; set; }
+        public int NuevoLeonOrder { get; set; }
+        public int PodcastOrder { get; set; }
     }
 }
