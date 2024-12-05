@@ -203,6 +203,8 @@ namespace MVS_Noticias_API.Controllers
                         ProgramacionOrder = 18,
                         GuardadosOrder = 19,
                         MasLeidasOrder = 20,
+                        AutosMasOrder = 21,
+                        isDefaultOrder = true,
                     };
                     return Ok(settings);
                 }
@@ -238,29 +240,30 @@ namespace MVS_Noticias_API.Controllers
 
                 customSettings = new CustomSettings
                 {
-                    Id = 1,
                     UserId = user.Id,
-                    GuardadosOrder = customSettingsDto.GuardadosOrder,
-                    MasLeidasOrder = customSettingsDto.MasLeidasOrder,
-                    TendenciasOrder = customSettingsDto.TendenciasOrder,
-                    EntrevistasOrder = customSettingsDto.EntrevistasOrder,
-                    MVSDeportesOrder = customSettingsDto.MVSDeportesOrder,
                     NacionalOrder = customSettingsDto.NacionalOrder,
-                    VideosOrder = customSettingsDto.VideosOrder,
                     CDMXOrder = customSettingsDto.CDMXOrder,
-                    EntretenimientoOrder = customSettingsDto.EntretenimientoOrder,
-                    OpinionOrder = customSettingsDto.OpinionOrder,
-                    EconomiaOrder = customSettingsDto.EconomiaOrder,
                     EstadosOrder = customSettingsDto.EstadosOrder,
-                    MundoOrder = customSettingsDto.MundoOrder,
-                    MascotasOrder = customSettingsDto.MascotasOrder,
-                    SaludBienestarOrder = customSettingsDto.SaludBienestarOrder,
                     PoliciacaOrder = customSettingsDto.PoliciacaOrder,
-                    ProgramacionOrder = customSettingsDto.Programacion,
-                    CienciaTecnologiaOrder = customSettingsDto.CienciaTecnologiaOrder,
-                    ViralOrder = customSettingsDto.ViralOrder,
                     NuevoLeonOrder = customSettingsDto.NuevoLeonOrder,
+                    MundoOrder = customSettingsDto.MundoOrder,
                     PodcastOrder = customSettingsDto.PodcastOrder,
+                    EconomiaOrder = customSettingsDto.EconomiaOrder,
+                    EntretenimientoOrder = customSettingsDto.EntretenimientoOrder,
+                    TendenciasOrder = customSettingsDto.TendenciasOrder,
+                    ViralOrder = customSettingsDto.ViralOrder,
+                    SaludBienestarOrder = customSettingsDto.SaludBienestarOrder,
+                    CienciaTecnologiaOrder = customSettingsDto.CienciaTecnologiaOrder,
+                    MascotasOrder = customSettingsDto.MascotasOrder,
+                    OpinionOrder = customSettingsDto.OpinionOrder,
+                    EntrevistasOrder = customSettingsDto.EntrevistasOrder,
+                    VideosOrder = customSettingsDto.VideosOrder,
+                    MVSDeportesOrder = customSettingsDto.MVSDeportesOrder,
+                    ProgramacionOrder = customSettingsDto.ProgramacionOrder,
+                    GuardadosOrder = customSettingsDto.GuardadosOrder,
+                    MasLeidasOrder = customSettingsDto.GuardadosOrder,
+                    AutosMasOrder = customSettingsDto.AutosMasOrder,
+                    isDefaultOrder = true
                 };
 
                 await _dataContext.CustomSettings.AddAsync(customSettings);
@@ -271,7 +274,7 @@ namespace MVS_Noticias_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError("Error getting custom settings: " + ex.Message);
-                return BadRequest("Error getting custom settings.");
+                return BadRequest("Error getting custom settings." + ex.Message);
             }
         }
 
@@ -295,27 +298,29 @@ namespace MVS_Noticias_API.Controllers
                     return NotFound("Custom settings not found.");
                 }
 
+                customSettings.NacionalOrder = customSettingsDto.NacionalOrder;
+                customSettings.CDMXOrder = customSettingsDto.CDMXOrder;
+                customSettings.EstadosOrder = customSettingsDto.EstadosOrder;
+                customSettings.ProgramacionOrder = customSettingsDto.ProgramacionOrder;
+                customSettings.NuevoLeonOrder = customSettingsDto.NuevoLeonOrder;
+                customSettings.MundoOrder = customSettingsDto.MundoOrder;
+                customSettings.PodcastOrder = customSettingsDto.PodcastOrder;
+                customSettings.EconomiaOrder = customSettingsDto.EconomiaOrder;
+                customSettings.EntretenimientoOrder = customSettingsDto.EntretenimientoOrder;
+                customSettings.TendenciasOrder = customSettingsDto.TendenciasOrder;
+                customSettings.VideosOrder = customSettingsDto.VideosOrder;
+                customSettings.SaludBienestarOrder = customSettingsDto.SaludBienestarOrder;
+                customSettings.CienciaTecnologiaOrder = customSettingsDto.CienciaTecnologiaOrder;
+                customSettings.MascotasOrder = customSettingsDto.MascotasOrder;
+                customSettings.OpinionOrder = customSettingsDto.OpinionOrder;
+                customSettings.EntrevistasOrder = customSettingsDto.EntrevistasOrder;
+                customSettings.VideosOrder = customSettingsDto.VideosOrder;
+                customSettings.MVSDeportesOrder = customSettingsDto.MVSDeportesOrder;
+                customSettings.ProgramacionOrder = customSettingsDto.ProgramacionOrder;
                 customSettings.GuardadosOrder = customSettingsDto.GuardadosOrder;
                 customSettings.MasLeidasOrder = customSettingsDto.MasLeidasOrder;
-                customSettings.TendenciasOrder = customSettingsDto.TendenciasOrder;
-                customSettings.EntrevistasOrder = customSettingsDto.EntrevistasOrder;
-                customSettings.MVSDeportesOrder = customSettingsDto.MVSDeportesOrder;
-                customSettings.NacionalOrder = customSettingsDto.NacionalOrder;
-                customSettings.VideosOrder = customSettingsDto.VideosOrder;
-                customSettings.CDMXOrder = customSettingsDto.CDMXOrder;
-                customSettings.EntretenimientoOrder = customSettingsDto.EntretenimientoOrder;
-                customSettings.OpinionOrder = customSettingsDto.OpinionOrder;
-                customSettings.EconomiaOrder = customSettingsDto.EconomiaOrder;
-                customSettings.EstadosOrder = customSettingsDto.EstadosOrder;
-                customSettings.MundoOrder = customSettingsDto.MundoOrder;
-                customSettings.MascotasOrder = customSettingsDto.MascotasOrder;
-                customSettings.SaludBienestarOrder = customSettingsDto.SaludBienestarOrder;
-                customSettings.PoliciacaOrder = customSettingsDto.PoliciacaOrder;
-                customSettings.ProgramacionOrder = customSettingsDto.Programacion;
-                customSettings.CienciaTecnologiaOrder = customSettingsDto.CienciaTecnologiaOrder;
-                customSettings.ViralOrder = customSettingsDto.ViralOrder;
-                customSettings.NuevoLeonOrder = customSettingsDto.NuevoLeonOrder;
-                customSettings.PodcastOrder = customSettingsDto.PodcastOrder;
+                customSettings.AutosMasOrder = customSettingsDto.AutosMasOrder;
+                customSettings.isDefaultOrder = false;
 
                 await _dataContext.SaveChangesAsync();
 

@@ -30,6 +30,8 @@ namespace MVS_Noticias_API.Models.Settings
         public int ProgramacionOrder { get; set; }
         public int GuardadosOrder { get; set; }
         public int MasLeidasOrder { get; set; }
+        public int AutosMasOrder { get; set; }
+        public bool? isDefaultOrder { get; set; } = false;
 
         [JsonIgnore]
         public User User { get; set; }

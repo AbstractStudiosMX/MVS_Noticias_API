@@ -52,7 +52,10 @@ namespace MVS_Noticias_API.Controllers
                 new Section { Id = 758, Name = "Entrevistas" },
                 new Section { Id = 759, Name = "Video" },
                 new Section { Id = 760, Name = "Deportes" },
-                new Section { Id = 788999, Name = "Programación" }
+                new Section { Id = 788999, Name = "Programación" },
+                new Section { Id = 788100, Name = "Guardados" },
+                new Section { Id = 788101, Name = "Más leídas" },
+                new Section { Id = 770, Name = "Autos y Más" }
             };
 
             if (includeSubsections)

@@ -4,6 +4,7 @@ using MVS_Noticias_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MVS_Noticias_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241204215601_AutosyMas")]
+    partial class AutosyMas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -266,7 +269,7 @@ namespace MVS_Noticias_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AutosMasOrder")
+                    b.Property<int>("AutosyMasOrder")
                         .HasColumnType("int");
 
                     b.Property<int>("CDMXOrder")
@@ -334,9 +337,6 @@ namespace MVS_Noticias_API.Migrations
 
                     b.Property<int>("ViralOrder")
                         .HasColumnType("int");
-
-                    b.Property<bool?>("isDefaultOrder")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 

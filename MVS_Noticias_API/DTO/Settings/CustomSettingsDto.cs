@@ -19,10 +19,11 @@
         public int MascotasOrder { get; set; }
         public int SaludBienestarOrder { get; set; }
         public int PoliciacaOrder { get; set; }
-        public int Programacion { get; set; }
+        public int ProgramacionOrder { get; set; }
         public int CienciaTecnologiaOrder { get; set; }
         public int ViralOrder { get; set; }
         public int NuevoLeonOrder { get; set; }
         public int PodcastOrder { get; set; }
+        public int AutosMasOrder { get; set; }
     }
 }
