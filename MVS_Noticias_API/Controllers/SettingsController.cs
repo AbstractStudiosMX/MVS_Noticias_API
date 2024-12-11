@@ -201,9 +201,7 @@ namespace MVS_Noticias_API.Controllers
                         VideosOrder = 16,
                         MVSDeportesOrder = 17,
                         ProgramacionOrder = 18,
-                        GuardadosOrder = 19,
-                        MasLeidasOrder = 20,
-                        AutosMasOrder = 21,
+                        MasLeidasOrder = 19,
                         isDefaultOrder = true,
                     };
                     return Ok(settings);
@@ -260,9 +258,6 @@ namespace MVS_Noticias_API.Controllers
                     VideosOrder = customSettingsDto.VideosOrder,
                     MVSDeportesOrder = customSettingsDto.MVSDeportesOrder,
                     ProgramacionOrder = customSettingsDto.ProgramacionOrder,
-                    GuardadosOrder = customSettingsDto.GuardadosOrder,
-                    MasLeidasOrder = customSettingsDto.GuardadosOrder,
-                    AutosMasOrder = customSettingsDto.AutosMasOrder,
                     isDefaultOrder = true
                 };
 
@@ -317,9 +312,7 @@ namespace MVS_Noticias_API.Controllers
                 customSettings.VideosOrder = customSettingsDto.VideosOrder;
                 customSettings.MVSDeportesOrder = customSettingsDto.MVSDeportesOrder;
                 customSettings.ProgramacionOrder = customSettingsDto.ProgramacionOrder;
-                customSettings.GuardadosOrder = customSettingsDto.GuardadosOrder;
                 customSettings.MasLeidasOrder = customSettingsDto.MasLeidasOrder;
-                customSettings.AutosMasOrder = customSettingsDto.AutosMasOrder;
                 customSettings.isDefaultOrder = false;
 
                 await _dataContext.SaveChangesAsync();
