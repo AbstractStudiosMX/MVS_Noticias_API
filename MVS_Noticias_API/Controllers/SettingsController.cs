@@ -171,6 +171,7 @@ namespace MVS_Noticias_API.Controllers
             try
             {
                 var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
+
                 if (user == null)
                 {
                     return NotFound("User not found.");

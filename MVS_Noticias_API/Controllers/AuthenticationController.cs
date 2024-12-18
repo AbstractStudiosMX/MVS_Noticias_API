@@ -111,6 +111,7 @@ namespace MVS_Noticias_API.Controllers
 
                 return Ok(new { Message = "User registered successfully", Uid = uid });
             }
+
             catch (Exception ex)
             {
                 return BadRequest($"Error registering user: {ex.Message}");

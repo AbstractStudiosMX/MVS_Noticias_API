@@ -1,12 +1,8 @@
-﻿using MVS_Noticias_API.Models.Domain;
-using System.Text.Json.Serialization;
-
-namespace MVS_Noticias_API.Models.Saved
+﻿namespace MVS_Noticias_API.DTO.Saved
 {
-    public class SavedNews
+    public class SavedNewsDto
     {
-        public int Id { get; set; }
-        public int UserId { get; set; }
+        public string userEmail {  get; set; } = string.Empty;
         public int IdNews { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -35,8 +31,5 @@ namespace MVS_Noticias_API.Models.Saved
         public string HiddenTags { get; set; } = string.Empty;
         public int NewsQuantity { get; set; }
         public int Number { get; set; }
-
-        [JsonIgnore]
-        public User User { get; set; }
     }
 }
