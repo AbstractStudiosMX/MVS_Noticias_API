@@ -56,6 +56,11 @@ namespace MVS_Noticias_API.Controllers
 
             try
             {
+                using var httpClient = new HttpClient();
+                var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
+
+                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, request.IdNews));
+                var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                 var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == request.userEmail);
 
@@ -68,32 +73,32 @@ namespace MVS_Noticias_API.Controllers
                 {
                     UserId = user.Id,
                     IdNews = request.IdNews,
-                    Title = request.Title,
-                    Description = request.Description,
-                    Date = request.Date,
-                    Section = request.Section,
-                    SubSection = request.SubSection,
-                    IdSection = request.IdSection,
-                    IdSubSection = request.IdSubSection,
-                    Url = request.Url,
-                    Slug = request.Slug,
-                    Photo = request.Photo,
-                    PhotoMobile = request.PhotoMobile,
-                    PhotoDescription = request.PhotoDescription,
-                    Author = request.Author,
-                    IdAuthor = request.IdAuthor,
-                    Creator = request.Creator,
-                    IdCreator = request.IdCreator,
-                    Content = request.Content,
-                    IsVideo = request.IsVideo,
-                    VideoUrl = request.VideoUrl,
-                    IsSound = request.IsSound,
-                    SoundUrl = request.SoundUrl,
-                    Type = request.Type,
-                    Tags = request.Tags,
-                    HiddenTags = request.HiddenTags,
-                    NewsQuantity = request.NewsQuantity,
-                    Number = request.Number,
+                    Title = newsData.Noticias[0].titulo,
+                    Date = newsData.Noticias[0].fecha,
+                    Section = newsData.Noticias[0].seccion,
+                    SubSection = newsData.Noticias[0].subseccion,
+                    IdSection = newsData.Noticias[0].id_seccion,
+                    IdSubSection = newsData.Noticias[0].id_subseccion,
+                    Url = newsData.Noticias[0].url,
+                    Slug = newsData.Noticias[0].slug,
+                    Photo = newsData.Noticias[0].foto,
+                    PhotoMobile = newsData.Noticias[0].foto_movil,
+                    PhotoCredits = newsData.Noticias[0].foto_creditos,
+                    PhotoDescription = newsData.Noticias[0].foto_descripcion,
+                    Author = newsData.Noticias[0].autor,
+                    IdAuthor = newsData.Noticias[0].id_autor,
+                    Creator = newsData.Noticias[0].creador,
+                    IdCreator = newsData.Noticias[0].id_creador,
+                    Content = newsData.Noticias[0].contenido,
+                    IsVideo = newsData.Noticias[0].isVideo,
+                    VideoUrl = newsData.Noticias[0].videoUrl,
+                    IsSound = newsData.Noticias[0].isSound,
+                    SoundUrl = newsData.Noticias[0].SoundUrl,
+                    Type = newsData.Noticias[0].Tipo,
+                    Tags = newsData.Noticias[0].tags,
+                    HiddenTags = newsData.Noticias[0].tags_ocultos,
+                    NewsQuantity = newsData.Noticias[0].cantidad_noticias,
+                    Number = newsData.Noticias[0].numero
                 };
 
                 await _dataContext.SavedNews.AddAsync(savedNews);
@@ -123,7 +128,7 @@ namespace MVS_Noticias_API.Controllers
                     return NotFound("User not found.");
                 }
 
-                var savedNews = await _dataContext.SavedNews.FirstOrDefaultAsync(x => x.Id == newsId);
+                var savedNews = await _dataContext.SavedNews.FirstOrDefaultAsync(x => x.IdNews == newsId);
 
                 if (savedNews == null) 
                 {
