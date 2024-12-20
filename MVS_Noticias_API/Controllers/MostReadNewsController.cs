@@ -62,6 +62,7 @@ namespace MVS_Noticias_API.Controllers
 
                 var mostReadNews = new List<CompleteNews>();
                 var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
+                int order = 0;
 
                 foreach (var id in newsIds)
                 {
@@ -97,8 +98,10 @@ namespace MVS_Noticias_API.Controllers
                         Tags = newsData.Noticias[0].tags,
                         HiddenTags = newsData.Noticias[0].tags_ocultos,
                         NewsQuantity = newsData.Noticias[0].cantidad_noticias,
-                        Number = newsData.Noticias[0].numero
+                        Number = order
                     };
+
+                    order++;
                     mostReadNews.Add(news);
                 }
 
