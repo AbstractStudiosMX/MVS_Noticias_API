@@ -15,5 +15,6 @@ namespace MVS_Noticias_API.Models.Domain
         public bool IsEnabled   { get; set; }
         public DateTime RegisterDate { get; set; }
         public string FirebaseUid { get; set; } = string.Empty;
+        public string Provider {  get; set; } = string.Empty;
     }
 }

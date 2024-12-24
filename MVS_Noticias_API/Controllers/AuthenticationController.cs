@@ -65,7 +65,8 @@ namespace MVS_Noticias_API.Controllers
                     //falta hasear la contrasena
                     RegisterDate = DateTime.Now,
                     IsEnabled = true,
-                    FirebaseUid = userRecord.Uid
+                    FirebaseUid = userRecord.Uid,
+                    Provider = "Email/Password"
                 };
 
                 _dataContext.Users.Add(user);
@@ -82,16 +83,16 @@ namespace MVS_Noticias_API.Controllers
         }
 
         [HttpPost("register-social")]
-        public async Task<ActionResult<string>> Register(string idToken)
+        public async Task<ActionResult<string>> Register(string idToken, string userEmail, string provider)
         {
             try
             {
                 var verifiedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
 
                 var uid = verifiedToken.Uid;
-                var email = verifiedToken.Claims["email"]?.ToString();
+                var email = userEmail;
 
-                var isRegistred = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                var isRegistred = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == email && u.Provider == provider);
 
                 if (isRegistred != null)
                 {
@@ -103,7 +104,8 @@ namespace MVS_Noticias_API.Controllers
                     Email = email,
                     RegisterDate = DateTime.Now,
                     IsEnabled = true,
-                    FirebaseUid = uid
+                    FirebaseUid = uid,
+                    Provider = provider
                 };
 
                 _dataContext.Users.Add(user);
