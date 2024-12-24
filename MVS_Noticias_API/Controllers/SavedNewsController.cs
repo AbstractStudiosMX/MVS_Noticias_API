@@ -40,6 +40,8 @@ namespace MVS_Noticias_API.Controllers
 
                 var savedNews = await _dataContext.SavedNews.Where(x => x.UserId == user.Id).ToListAsync();
 
+                savedNews.Reverse();
+
                 return Ok(savedNews);
             }
             catch (Exception ex)
