@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MVS_Noticias_API.Data;
 using MVS_Noticias_API.Models.News;
 using Newtonsoft.Json;
-using Ganss.Xss; // Para sanitización
+using Ganss.Xss;
 
 namespace MVS_Noticias_API.Controllers
 {
@@ -32,18 +32,15 @@ namespace MVS_Noticias_API.Controllers
             {
                 using var httpClient = new HttpClient();
 
-                // Obtener URL desde configuración
                 var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
-                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, idNews));
+                var responseNewsMVS = await httpClient.GetStringAsync($"{apiEditor80}noticias.asp?id_noticia={idNews}&contenido=si");
                 var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                 var mostReadNews = new List<CompleteNews>();
 
                 foreach (var news in newsData.Noticias)
                 {
-
                     string content = news.contenido;
-                    var sanitizedContent = SanitizeHtmlContent(content);
 
                     var mostRead = new CompleteNews
                     {
@@ -65,7 +62,7 @@ namespace MVS_Noticias_API.Controllers
                         IdAuthor = news.id_autor,
                         Creator = news.creador,
                         IdCreator = news.id_creador,
-                        Content = sanitizedContent,
+                        Content = AddCustomStyles(SanitizeHtmlContent(content)),
                         IsVideo = news.isVideo,
                         VideoUrl = news.videoUrl,
                         IsSound = news.isSound,
@@ -90,32 +87,74 @@ namespace MVS_Noticias_API.Controllers
 
         private string SanitizeHtmlContent(string htmlContent)
         {
-            var sanitizer = new HtmlSanitizer();
-
-            sanitizer.AllowedTags.Add("p");
-            sanitizer.AllowedTags.Add("strong");
-            sanitizer.AllowedTags.Add("em");
-            sanitizer.AllowedTags.Add("b");
-            sanitizer.AllowedTags.Add("i");
-            sanitizer.AllowedTags.Add("u");
-            sanitizer.AllowedTags.Add("br");
-            sanitizer.AllowedTags.Add("a");
-            sanitizer.AllowedTags.Add("img");
-            sanitizer.AllowedTags.Add("iframe");
-            sanitizer.AllowedTags.Add("ul");
-            sanitizer.AllowedTags.Add("li");
-            sanitizer.AllowedTags.Add("div");
-            sanitizer.AllowedTags.Add("aside");
-
-            sanitizer.AllowedAttributes.Add("href"); 
-            sanitizer.AllowedAttributes.Add("src"); 
-            sanitizer.AllowedAttributes.Add("alt"); 
-            sanitizer.AllowedAttributes.Add("title");
-            sanitizer.AllowedAttributes.Add("width"); 
-            sanitizer.AllowedAttributes.Add("height"); 
-            sanitizer.AllowedAttributes.Add("allowfullscreen");
+            var sanitizer = new HtmlSanitizer
+            {
+                AllowedTags = { "p", "strong", "em", "b", "i", "u", "br", "a", "img", "iframe", "ul", "div", "aside" },
+                AllowedAttributes = { "href", "src", "alt", "title", "width", "height", "allowfullscreen", "class" }
+            };
 
             return sanitizer.Sanitize(htmlContent);
         }
+
+        private string AddCustomStyles(string sanitizedHtml)
+        {
+            if (string.IsNullOrWhiteSpace(sanitizedHtml))
+                return sanitizedHtml;
+
+            try
+            {
+                var document = new HtmlAgilityPack.HtmlDocument();
+                document.LoadHtml(sanitizedHtml);
+
+                var relatedNewsNodes = document.DocumentNode.SelectNodes("//aside[contains(@class, 'relacionadas')]");
+                if (relatedNewsNodes != null)
+                {
+                    foreach (var aside in relatedNewsNodes)
+                    {
+                        aside.SetAttributeValue("style", "background-color: #f6f6f6; padding: 10px; margin: 10px 0; border-radius: 5px;");
+
+                        
+                        var titleNode = aside.SelectSingleNode(".//strong[contains(@class, 'relacionadas-titulo-gral')]");
+                        titleNode?.SetAttributeValue("style", "font-weight: bold; display: block; margin-bottom: 10px;");
+
+                        
+                        var ulNode = aside.SelectSingleNode(".//ul");
+                        if (ulNode != null)
+                        {
+                            ulNode.ParentNode.ReplaceChild(HtmlAgilityPack.HtmlNode.CreateNode(ulNode.InnerHtml), ulNode);
+                        }
+
+                        var listItems = aside.SelectNodes(".//li");
+                        if (listItems != null)
+                        {
+                            foreach (var li in listItems)
+                            {
+                                var linkNode = li.SelectSingleNode(".//a");
+                                if (linkNode != null)
+                                {
+                                    linkNode.SetAttributeValue("style", "color: black; font-weight: bold; text-decoration: none; display: flex; align-items: center; margin-bottom: 10px;");
+
+                                    var imgNode = linkNode.SelectSingleNode(".//img");
+                                    imgNode?.SetAttributeValue("style", "float: left; margin-right: 10px; width: 171px; height: 96px;");
+
+                                    var titleInLink = linkNode.SelectSingleNode(".//div[contains(@class, 'item-tit')]");
+                                    titleInLink?.SetAttributeValue("style", "font-weight: bold; margin-top: 10px;");
+                                }
+
+                                li.ParentNode.ReplaceChild(linkNode, li);
+                            }
+                        }
+                    }
+                }
+
+                return document.DocumentNode.OuterHtml;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error styling HTML content.");
+                return sanitizedHtml;
+            }
+        }
+
     }
 }
