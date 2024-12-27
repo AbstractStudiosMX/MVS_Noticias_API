@@ -33,7 +33,7 @@ namespace MVS_Noticias_API.Controllers
                 using var httpClient = new HttpClient();
 
                 var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
-                var responseNewsMVS = await httpClient.GetStringAsync($"{apiEditor80}noticias.asp?id_noticia={idNews}&contenido=si");
+                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80,idNews));
                 var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                 var mostReadNews = new List<CompleteNews>();

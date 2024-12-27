@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MVS_Noticias_API.Data;
 using MVS_Noticias_API.DTO.Settings;
+using MVS_Noticias_API.Models.Domain;
 using MVS_Noticias_API.Models.Settings;
 
 namespace MVS_Noticias_API.Controllers
@@ -532,6 +533,61 @@ namespace MVS_Noticias_API.Controllers
             }
         }
         #endregion
+      
+        #region User data Endpoint
+        [HttpGet("user_data")]
+        public async Task<ActionResult<User>> GetUserData(string userEmail)
+        {
+            _logger.LogInformation("Get user data proccess.");
 
+            try
+            {
+                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error getting user data: " + ex.Message);
+                return BadRequest("Error getting user data: " + ex.Message);
+            }
+        }
+
+        [HttpPut("user_data")]
+        public async Task<ActionResult<User>> UpadateUserData(DataUserDto userData)
+        {
+            _logger.LogInformation("Put user data proccess.");
+
+            try
+            {
+                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userData.email);
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                user.FullName = userData.FullName;
+                user.Username = userData.Username;
+                user.PhoneNumber = userData.PhoneNumber;
+                user.BirthDate = userData.BirthDate;
+                user.Gender = userData.Gender;
+                user.City = userData.City;
+                user.ImageUrl = userData.ImageUrl;
+
+                await _dataContext.SaveChangesAsync();
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error putting user data: " + ex.Message);
+                return BadRequest("Error putting user data: " + ex.Message);
+            }
+        }
+        #endregion
     }
 }
