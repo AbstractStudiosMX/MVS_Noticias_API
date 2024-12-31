@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FirebaseAdmin.Messaging;
+using Microsoft.EntityFrameworkCore;
 using MVS_Noticias_API.Models.Currency;
 using MVS_Noticias_API.Models.Domain;
 using MVS_Noticias_API.Models.Programming;
@@ -20,5 +21,6 @@ namespace MVS_Noticias_API.Data
         public DbSet<Programming> Programs { get; set; }
         public DbSet<BroadcastInfo> BroadcastInfo { get; set; }
         public DbSet<Currency> Currencies { get; set; }
+        public DbSet<UserNotifications> Notifications { get; set; }
     }
 }
