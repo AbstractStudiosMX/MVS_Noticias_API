@@ -21,6 +21,9 @@ try
     //Currency cron
     builder.Services.AddHostedService<CurrencyUpdateService>();
 
+    //LastNews cron
+    builder.Services.AddHostedService<NewsUpdateService>();
+
     //Firebase 
     FirebaseApp.Create(new AppOptions 
     { 
@@ -76,6 +79,14 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
     }
+
+    // WebSockets
+    app.UseWebSockets();
+
+    app.Map("/ws", async context =>
+    {
+        await WebSocketService.HandleWebSocketConnection(context);
+    });
 
     app.UseSwagger();
     app.UseSwaggerUI();

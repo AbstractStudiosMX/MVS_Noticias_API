@@ -4,6 +4,7 @@ using MVS_Noticias_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MVS_Noticias_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241230155936_LastNews")]
+    partial class LastNews
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -435,49 +438,6 @@ namespace MVS_Noticias_API.Migrations
                     b.ToTable("SavedVideos");
                 });
 
-            modelBuilder.Entity("MVS_Noticias_API.Models.Saved.UserNotifications", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsNew")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("NewsId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RegisterDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Section")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Notifications");
-                });
-
             modelBuilder.Entity("MVS_Noticias_API.Models.Settings.AccessibilitySettings", b =>
                 {
                     b.Property<int>("Id")
@@ -686,17 +646,6 @@ namespace MVS_Noticias_API.Migrations
                 });
 
             modelBuilder.Entity("MVS_Noticias_API.Models.Saved.SavedVideos", b =>
-                {
-                    b.HasOne("MVS_Noticias_API.Models.Domain.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MVS_Noticias_API.Models.Saved.UserNotifications", b =>
                 {
                     b.HasOne("MVS_Noticias_API.Models.Domain.User", "User")
                         .WithMany()
