@@ -129,7 +129,7 @@ namespace MVS_Noticias_API.Controllers
                 var apiOneSignal = _configuration.GetSection("AppSettings:OneSignalApiKey").Value;
                 var appIdOneSignal = _configuration.GetSection("AppSettings:OneSignalAppId").Value;
 
-                int limit = 5;
+                int limit = 5;//el limite tendria que servir para validar las otras noticias pasadas y ver si esta la nueva o no, creo que con 2 seria suficiente
 
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {apiOneSignal}");
                 httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
@@ -139,14 +139,8 @@ namespace MVS_Noticias_API.Controllers
                 var newsData = JsonConvert.DeserializeObject<dynamic>(responseOneSignal);
 
                 var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
-                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, 671681));
+                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, newsData.notifications[0].data.idnota));
                 var newsDataDetail = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
-
-                long unixTime = newsData.notifications[0].completed_at;
-                int timezoneOffset = newsData.notifications[0].completed_at;
-                DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unixTime).UtcDateTime.AddSeconds(timezoneOffset);
-                string formattedDateTime = dateTime.ToString("ddd hh:mm tt", new System.Globalization.CultureInfo("es-ES"));
-                formattedDateTime = char.ToUpper(formattedDateTime[0]) + formattedDateTime.Substring(1);
 
                 var savedNews = new List<UserNotifications>();
 
@@ -169,7 +163,7 @@ namespace MVS_Noticias_API.Controllers
                             Section = subseccion != ""
                                         ? subseccion
                                         : seccion,
-                            RegisterDate = formattedDateTime
+                            RegisterDate = notification.fecha
 
                         };
                         savedNews.Add(savedNew);
