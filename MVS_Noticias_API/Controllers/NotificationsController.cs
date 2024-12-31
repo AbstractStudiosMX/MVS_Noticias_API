@@ -173,7 +173,6 @@ namespace MVS_Noticias_API.Controllers
 
                         };
                         savedNews.Add(savedNew);
-                        //
                     }
                 }
 
