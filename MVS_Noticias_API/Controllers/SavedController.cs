@@ -51,7 +51,7 @@ namespace MVS_Noticias_API.Controllers
             }
         }
 
-        [HttpPost("savedNews")]
+        [HttpPost("saveNews")]
         public async Task<ActionResult<List<SavedNews>>> PostSavedNews(SavedNewsDto request)
         {
             _logger.LogInformation("Starting post save news proccess.");
@@ -165,11 +165,11 @@ namespace MVS_Noticias_API.Controllers
                     return NotFound("User not found.");
                 }
 
-                var savedNews = await _dataContext.savedPodcasts.Where(x => x.UserId == user.Id).ToListAsync();
+                var savedPodcasts = await _dataContext.savedPodcasts.Where(x => x.UserId == user.Id).ToListAsync();
 
-                savedNews.Reverse();
+                savedPodcasts.Reverse();
 
-                return Ok(savedNews);
+                return Ok(savedPodcasts);
             }
             catch (Exception ex)
             {
@@ -177,6 +177,80 @@ namespace MVS_Noticias_API.Controllers
                 return BadRequest("Error getting saved podcasts: " + ex.Message);
             }
         }
+
+        [HttpPost("savePodcast")]
+        public async Task<ActionResult<List<SavedPodcasts>>> PostSavedPodcasts(SavedPodcastsDto request)
+        {
+            _logger.LogInformation("Starting post saved podcast proccess.");
+
+            try
+            {
+                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == request.userEmail);
+
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                var savedPodcast = new SavedPodcasts
+                {
+                    UserId = user.Id,
+                    Title = request.Title,
+                    Description = request.Description,
+                    DurationSeconds = request.DurationSeconds,
+                    PublishedDurationSeconds = request.PublishedDurationSeconds,
+                    ImagePublicUrl = request.ImagePublicUrl,
+                    AudioPublicUrl = request.AudioPublicUrl,
+                    AudioPublicAdFreeUrl = request.AudioPublicAdFreeUrl,
+                };
+
+                await _dataContext.savedPodcasts.AddAsync(savedPodcast);
+                await _dataContext.SaveChangesAsync();
+
+                return Ok(savedPodcast);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error posting saved podcast: " + ex.Message);
+                return BadRequest("Error posting saved podcast: " + ex.Message);
+            }
+        }
+
+        [HttpDelete("savedPodcast")]
+        public async Task<ActionResult<List<SavedPodcasts>>> DeleteSavedPodcast(int podcastId, string userEmail)
+        {
+            _logger.LogInformation("Starting delete save podcast proccess.");
+
+            try
+            {
+
+                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
+
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                var savedPodcasts = await _dataContext.savedPodcasts.FirstOrDefaultAsync(x => x.Id == podcastId);
+
+                if (savedPodcasts == null)
+                {
+                    return NotFound("saved podcast not found.");
+                }
+
+
+                _dataContext.savedPodcasts.Remove(savedPodcasts);
+                await _dataContext.SaveChangesAsync();
+
+                return Ok("Saved podcast deleted");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error deleting saved podcast: " + ex.Message);
+                return BadRequest("Error deleting saved podcast: " + ex.Message);
+            }
+        }
+
 
     }
 }

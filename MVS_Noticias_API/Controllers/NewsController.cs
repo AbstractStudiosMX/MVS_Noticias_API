@@ -37,13 +37,13 @@ namespace MVS_Noticias_API.Controllers
                     var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, idNews));
                     var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
-                    var mostReadNews = new List<CompleteNewsDetail>();
+                    var detailNews = new List<CompleteNewsDetail>();
 
                     foreach (var news in newsData.Noticias)
                     {
                         string content = news.contenido;
 
-                        var mostRead = new CompleteNewsDetail
+                        var detail = new CompleteNewsDetail
                         {
                             IdNews = news.id_noticia,
                             Title = news.titulo,
@@ -75,10 +75,10 @@ namespace MVS_Noticias_API.Controllers
                             NewsQuantity = 0,
                             Number = news.numero,
                         };
-                        mostReadNews.Add(mostRead);
+                        detailNews.Add(detail);
                     }
 
-                    return Ok(mostReadNews);
+                    return Ok(detailNews);
                 }
                 catch (Exception ex)
                 {
