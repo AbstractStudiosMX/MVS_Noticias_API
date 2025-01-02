@@ -10,13 +10,13 @@ namespace MVS_Noticias_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class SavedNewsController : ControllerBase
+    public class SavedController : ControllerBase
     {
         private readonly DataContext _dataContext;
         public readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 
-        public SavedNewsController(IConfiguration configuration, ILogger<SavedNewsController> logger, DataContext dataContext)
+        public SavedController(IConfiguration configuration, ILogger<SavedController> logger, DataContext dataContext)
         {
             _configuration = configuration;
             _dataContext = dataContext;
@@ -147,6 +147,34 @@ namespace MVS_Noticias_API.Controllers
             {
                 _logger.LogError("Error deleting saved news: " + ex.Message);
                 return BadRequest("Error deleting saved news: " + ex.Message);
+            }
+        }
+
+        [HttpGet("savedPodcast")]
+        public async Task<ActionResult<List<SavedPodcasts>>> GetSavedPodcasts(string userEmail)
+        {
+            _logger.LogInformation("Starting saved podcast proccess.");
+
+            try
+            {
+
+                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
+
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                var savedNews = await _dataContext.savedPodcasts.Where(x => x.UserId == user.Id).ToListAsync();
+
+                savedNews.Reverse();
+
+                return Ok(savedNews);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error getting saved podcasts: " + ex.Message);
+                return BadRequest("Error getting saved podcasts: " + ex.Message);
             }
         }
 

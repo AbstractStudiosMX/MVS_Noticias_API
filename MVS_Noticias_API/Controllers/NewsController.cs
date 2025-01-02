@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MVS_Noticias_API.Data;
 using MVS_Noticias_API.Models.News;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace MVS_Noticias_API.Controllers
 {
@@ -36,13 +37,13 @@ namespace MVS_Noticias_API.Controllers
                     var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, idNews));
                     var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
-                    var mostReadNews = new List<CompleteNews>();
+                    var mostReadNews = new List<CompleteNewsDetail>();
 
                     foreach (var news in newsData.Noticias)
                     {
                         string content = news.contenido;
 
-                        var mostRead = new CompleteNews
+                        var mostRead = new CompleteNewsDetail
                         {
                             IdNews = news.id_noticia,
                             Title = news.titulo,
@@ -63,6 +64,7 @@ namespace MVS_Noticias_API.Controllers
                             Creator = news.creador,
                             IdCreator = news.id_creador,
                             Content = AddCustomStyles(SanitizeHtmlContent(content)),
+                            ContentClean = RemoveHtmlTags(content),
                             IsVideo = news.isVideo,
                             VideoUrl = news.videoUrl,
                             IsSound = news.isSound,
@@ -155,5 +157,43 @@ namespace MVS_Noticias_API.Controllers
                 return sanitizedHtml;
             }
         }
-        }
+
+            private string RemoveHtmlTags(string htmlContent)
+            {
+                if (string.IsNullOrWhiteSpace(htmlContent))
+                    return string.Empty;
+
+                var document = new HtmlAgilityPack.HtmlDocument();
+                document.LoadHtml(htmlContent);
+
+                var embeddedContentNodes = document.DocumentNode.SelectNodes("//iframe|//blockquote[contains(@class, 'twitter')]");
+                embeddedContentNodes?.ToList().ForEach(node => node.Remove());
+
+                var relatedNewsNodes = document.DocumentNode.SelectNodes("//aside[contains(@class, 'relacionadas')]");
+                relatedNewsNodes?.ToList().ForEach(node => node.Remove());
+
+                var nodesToRemove = document.DocumentNode.SelectNodes("//a|//img");
+                nodesToRemove?.ToList().ForEach(node => node.Remove());
+
+                var plainText = document.DocumentNode.InnerText;
+
+                return CleanSpecialCharacters(plainText);
+            }
+
+            private string CleanSpecialCharacters(string text)
+            {
+                if (string.IsNullOrWhiteSpace(text))
+                    return string.Empty;
+
+                text = Regex.Replace(text, @"https?://[^\s]+", string.Empty); 
+                text = Regex.Replace(text, @"\b\w+\.(jpg|png|gif|jpeg|bmp|tiff|webp)\b", string.Empty, RegexOptions.IgnoreCase); 
+
+                text = text.Replace("\r\n", " "); 
+                text = text.Replace("&nbsp;", " ");
+                text = text.Replace("&mdash;", "—");
+
+                return Regex.Replace(text, @"\s+", " ").Trim();
+            }
+
     }
+}
