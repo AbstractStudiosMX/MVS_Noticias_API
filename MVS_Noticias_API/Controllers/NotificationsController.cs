@@ -26,7 +26,7 @@ namespace MVS_Noticias_API.Controllers
         }
 
         [HttpGet("allNotifications")]
-        public async Task<ActionResult<List<Notification>>> GetUserNotifications(string userEmail)
+        public async Task<ActionResult<List<UserNotifications>>> GetUserNotifications(string userEmail)
         {
             _logger.LogInformation("Starting getting user notifications proccess.");
 
@@ -76,6 +76,8 @@ namespace MVS_Noticias_API.Controllers
                 notification.IsRead = true;
                 notification.IsNew = true;
 
+                await _dataContext.SaveChangesAsync();
+
                 return Ok("Updated notification");
             }
             catch (Exception ex)
@@ -86,7 +88,7 @@ namespace MVS_Noticias_API.Controllers
         }
 
         [HttpDelete("notification")]
-        public async Task<ActionResult<List<Notification>>> DeleteUserNotifications(int newsId, string userEmail)
+        public async Task<ActionResult<List<UserNotifications>>> DeleteUserNotifications(int newsId, string userEmail)
         {
             _logger.LogInformation("Starting delete notification proccess.");
 

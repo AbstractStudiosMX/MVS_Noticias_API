@@ -130,7 +130,7 @@ namespace MVS_Noticias_API.Controllers
                     return NotFound("User not found.");
                 }
 
-                var savedNews = await _dataContext.SavedNews.FirstOrDefaultAsync(x => x.IdNews == newsId);
+                var savedNews = await _dataContext.SavedNews.FirstOrDefaultAsync(x => x.IdNews == newsId && x.UserId == user.Id);
 
                 if (savedNews == null) 
                 {
@@ -164,7 +164,7 @@ namespace MVS_Noticias_API.Controllers
                     return NotFound("User not found.");
                 }
 
-                var savedPodcasts = await _dataContext.savedPodcasts
+                var savedPodcasts = await _dataContext.SavedPodcasts
                     .Where(x => x.UserId == user.Id)
                     .ToListAsync();
 
@@ -205,14 +205,12 @@ namespace MVS_Noticias_API.Controllers
                     ProgramName = request.ProgramName,
                     Title = request.Title,
                     Description = request.Description,
-                    DurationSeconds = request.DurationSeconds,
                     PublishedDurationSeconds = request.PublishedDurationSeconds,
                     ImagePublicUrl = request.ImagePublicUrl,
                     AudioPublicUrl = request.AudioPublicUrl,
-                    AudioPublicAdFreeUrl = request.AudioPublicAdFreeUrl,
                 };
 
-                await _dataContext.savedPodcasts.AddAsync(savedPodcast);
+                await _dataContext.SavedPodcasts.AddAsync(savedPodcast);
                 await _dataContext.SaveChangesAsync();
 
                 return Ok(savedPodcast);
@@ -225,7 +223,7 @@ namespace MVS_Noticias_API.Controllers
         }
 
         [HttpDelete("savedPodcast")]
-        public async Task<ActionResult<List<SavedPodcasts>>> DeleteSavedPodcast(int podcastId, string userEmail)
+        public async Task<ActionResult<List<SavedPodcasts>>> DeleteSavedPodcast(string podcastTitle, string userEmail)
         {
             _logger.LogInformation("Starting delete save podcast proccess.");
 
@@ -239,7 +237,7 @@ namespace MVS_Noticias_API.Controllers
                     return NotFound("User not found.");
                 }
 
-                var savedPodcasts = await _dataContext.savedPodcasts.FirstOrDefaultAsync(x => x.Id == podcastId);
+                var savedPodcasts = await _dataContext.SavedPodcasts.FirstOrDefaultAsync(x => x.Title == podcastTitle && x.UserId == user.Id);
 
                 if (savedPodcasts == null)
                 {
@@ -247,7 +245,7 @@ namespace MVS_Noticias_API.Controllers
                 }
 
 
-                _dataContext.savedPodcasts.Remove(savedPodcasts);
+                _dataContext.SavedPodcasts.Remove(savedPodcasts);
                 await _dataContext.SaveChangesAsync();
 
                 return Ok("Saved podcast deleted");
