@@ -5,8 +5,11 @@ namespace MVS_Noticias_API.Models.Saved
 {
     public class SavedPodcasts
     {
+        public int Index { get; set; }
         public int Id { get; set; }
         public int UserId { get; set; }
+        public string ProgramId { get; set; } = string.Empty;
+        public string ProgramName { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public float DurationSeconds { get; set; }

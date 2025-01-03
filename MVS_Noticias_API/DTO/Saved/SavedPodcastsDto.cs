@@ -3,6 +3,8 @@
     public class SavedPodcastsDto
     {
         public string userEmail {  get; set; } = string.Empty;
+        public string ProgramId { get; set; } = string.Empty;
+        public string ProgramName { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public float DurationSeconds { get; set; }

@@ -153,11 +153,10 @@ namespace MVS_Noticias_API.Controllers
         [HttpGet("savedPodcast")]
         public async Task<ActionResult<List<SavedPodcasts>>> GetSavedPodcasts(string userEmail)
         {
-            _logger.LogInformation("Starting saved podcast proccess.");
+            _logger.LogInformation("Starting saved podcast process.");
 
             try
             {
-
                 var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
 
                 if (user == null)
@@ -165,9 +164,16 @@ namespace MVS_Noticias_API.Controllers
                     return NotFound("User not found.");
                 }
 
-                var savedPodcasts = await _dataContext.savedPodcasts.Where(x => x.UserId == user.Id).ToListAsync();
+                var savedPodcasts = await _dataContext.savedPodcasts
+                    .Where(x => x.UserId == user.Id)
+                    .ToListAsync();
 
                 savedPodcasts.Reverse();
+
+                for (int i = 0; i < savedPodcasts.Count; i++)
+                {
+                    savedPodcasts[i].Index = i;
+                }
 
                 return Ok(savedPodcasts);
             }
@@ -195,6 +201,8 @@ namespace MVS_Noticias_API.Controllers
                 var savedPodcast = new SavedPodcasts
                 {
                     UserId = user.Id,
+                    ProgramId = request.ProgramId,
+                    ProgramName = request.ProgramName,
                     Title = request.Title,
                     Description = request.Description,
                     DurationSeconds = request.DurationSeconds,
