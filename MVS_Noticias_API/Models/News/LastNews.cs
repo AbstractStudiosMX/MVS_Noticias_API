@@ -1,35 +1,80 @@
-﻿namespace MVS_Noticias_API.Models.News
+﻿using System.Text.Json.Serialization;
+
+namespace MVS_Noticias_API.Models.News
 {
     public class LastNews
     {
         public int Id { get; set; }
+        [JsonPropertyName("id_noticia")]
         public int IdNews { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string Date { get; set; } = string.Empty;
-        public string Section { get; set; } = string.Empty;
-        public string SubSection { get; set; } = string.Empty;
+
+        [JsonPropertyName("titulo")]
+        public string Title { get; set; }
+
+        [JsonPropertyName("descripcion")]
+        public string Description { get; set; }
+
+        [JsonPropertyName("fecha")]
+        public string Date { get; set; }
+
+        [JsonPropertyName("seccion")]
+        public string Section { get; set; }
+
+        [JsonPropertyName("subseccion")]
+        public string SubSection { get; set; }
+
+        [JsonPropertyName("id_seccion")]
         public int IdSection { get; set; }
+
+        [JsonPropertyName("id_subseccion")]
         public int IdSubSection { get; set; }
-        public string Url { get; set; } = string.Empty;
-        public string Slug { get; set; } = string.Empty;
-        public string Photo { get; set; } = string.Empty;
-        public string PhotoMobile { get; set; } = string.Empty;
-        public string PhotoCredits { get; set; } = string.Empty;
-        public string PhotoDescription { get; set; } = string.Empty;
-        public string Author { get; set; } = string.Empty;
+
+        [JsonPropertyName("url")]
+        public string Url { get; set; }
+
+        [JsonPropertyName("slug")]
+        public string Slug { get; set; }
+
+        [JsonPropertyName("foto")]
+        public string Photo { get; set; }
+
+        [JsonPropertyName("foto_movil")]
+        public string PhotoMobile { get; set; }
+
+        [JsonPropertyName("foto_creditos")]
+        public string PhotoCredits { get; set; }
+
+        [JsonPropertyName("foto_descripcion")]
+        public string PhotoDescription { get; set; }
+
+        [JsonPropertyName("autor")]
+        public string Author { get; set; }
+
+        [JsonPropertyName("id_autor")]
         public int IdAuthor { get; set; }
-        public string Creator { get; set; } = string.Empty;
+
+        [JsonPropertyName("creador")]
+        public string Creator { get; set; }
+
+        [JsonPropertyName("id_creador")]
         public int IdCreator { get; set; }
-        public string Content { get; set; } = string.Empty;
+
+        [JsonPropertyName("isVideo")]
         public bool IsVideo { get; set; }
-        public string VideoUrl { get; set; } = string.Empty;
+
+        [JsonPropertyName("videoUrl")]
+        public string VideoUrl { get; set; }
+
+        [JsonPropertyName("isSound")]
         public bool IsSound { get; set; }
-        public string SoundUrl { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public string Tags { get; set; } = string.Empty;
-        public string HiddenTags { get; set; } = string.Empty;
-        public int NewsQuantity { get; set; }
+
+        [JsonPropertyName("SoundUrl")]
+        public string SoundUrl { get; set; }
+
+        [JsonPropertyName("Tipo")]
+        public string Type { get; set; }
+
+        [JsonPropertyName("numero")]
         public int Number { get; set; }
     }
 }

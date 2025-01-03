@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MVS_Noticias_API.Data;
 using MVS_Noticias_API.Models.Saved;
+using MVS_Noticias_API.Models.Settings;
 using Newtonsoft.Json;
+using static System.Collections.Specialized.BitVector32;
 
 namespace MVS_Noticias_API.Controllers
 {
@@ -144,19 +146,40 @@ namespace MVS_Noticias_API.Controllers
 
                 var savedNews = new List<UserNotifications>();
 
-                var usersList = await _dataContext.Users.ToListAsync();//este sirve para mandarle a absolutamebte todos los usuario las notificaciones
+                //var usersList = await _dataContext.Users.ToListAsync();//este sirve para mandarle a absolutamebte todos los usuario las notificaciones
+
+                var notificationSettings = await _dataContext.NotificationsSettings.ToListAsync();
 
                 foreach (var notification in newsDataDetail.Noticias)
                 {
                     string seccion = notification.seccion;
                     string subseccion = notification.subseccion;
+                    string targetSection = !string.IsNullOrEmpty(subseccion) ? subseccion : seccion;
 
-                    foreach (var user in usersList)
+                    // Map section to enum
+                    if (!Enum.TryParse(targetSection.Replace(" ", ""), true, out NotificationSections sectionEnum))
+                    {
+                        _logger.LogWarning($"Section '{targetSection}' not found in enum.");
+                        continue;
+                    }
+
+                    // Filtrar usuarios con preferencias activas
+                    var targetUsers = notificationSettings
+                        .Where(ns =>
+                        {
+                            var property = ns.GetType().GetProperty(sectionEnum.ToString());
+                            if (property == null) return false; // Si la propiedad no existe, no se incluye
+                            var value = property.GetValue(ns) as bool?;
+                            return value == true; // Solo incluye configuraciones activas
+                        })
+                        .ToList();
+
+                    foreach (var targetUser in targetUsers)
                     {
                         var savedNew = new UserNotifications
                         {
 
-                            UserId = user.Id,
+                            UserId = targetUser.UserId,
                             NewsId = notification.id_noticia,
                             Title = notification.titulo,
                             Content = notification.descripcion,
@@ -170,11 +193,54 @@ namespace MVS_Noticias_API.Controllers
                     }
                 }
 
-                
-                var usersListSettins = await _dataContext.NotificationsSettings.ToListAsync();
-                //falta agregar la logica para que llegue acorde a las configuraciones de cada usuario
+                // Lista de usuarios - revisar preferencias - [usuarios sin registro en la tabla preferencias (todos)] - [usuarios con preferencias]
+
+                // Automatizar el chequeo de la notificacion (CRON) solo con el ID de la noticia
+
+                // Revisar si ya tiene la notificación
+
+                // Mandarsela a todos
 
 
+                // Inserciones con validación de duplicados y transacción
+                const int batchSize = 100; // Tamaño del lote
+
+                if (savedNews.Any())
+                {
+                    var uniqueNews = new List<UserNotifications>();
+
+                    foreach (var news in savedNews)
+                    {
+                        bool exists = await _dataContext.Notifications
+                            .AnyAsync(n => n.UserId == news.UserId && n.NewsId == news.NewsId);
+
+                        if (!exists)
+                        {
+                            uniqueNews.Add(news);
+                        }
+                    }
+
+                    using var transaction = await _dataContext.Database.BeginTransactionAsync();
+                    try
+                    {
+                        // Inserciones en lotes
+                        for (int i = 0; i < uniqueNews.Count; i += batchSize)
+                        {
+                            var batch = uniqueNews.Skip(i).Take(batchSize).ToList();
+                            await _dataContext.Notifications.AddRangeAsync(batch);
+                            await _dataContext.SaveChangesAsync();
+                        }
+
+                        await transaction.CommitAsync();
+                        _logger.LogInformation($"Saved {uniqueNews.Count} unique notifications to the database.");
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync();
+                        _logger.LogError("Error while saving notifications: " + ex.Message);
+                        throw;
+                    }
+                }
 
                 return Ok(savedNews);
             }
@@ -183,6 +249,27 @@ namespace MVS_Noticias_API.Controllers
                 _logger.LogError("Error getting user notifications: " + ex.Message);
                 return BadRequest("Error getting user notifications: " + ex.Message);
             }
+        }
+
+        public enum NotificationSections
+        {
+            Tendencias,
+            Entrevistas,
+            Deportes,
+            Nacional,
+            Videos,
+            CDMX,
+            Entretenimiento,
+            Opinion,
+            Economia,
+            Estados,
+            Mundo,
+            Mascotas,
+            SaludBienestar,
+            Policiaca,
+            Programacion,
+            CienciaTecnologia,
+            Viral
         }
     }
 }

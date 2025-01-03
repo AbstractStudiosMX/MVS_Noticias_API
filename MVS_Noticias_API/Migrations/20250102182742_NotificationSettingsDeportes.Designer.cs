@@ -4,6 +4,7 @@ using MVS_Noticias_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MVS_Noticias_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250102182742_NotificationSettingsDeportes")]
+    partial class NotificationSettingsDeportes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,131 +24,6 @@ namespace MVS_Noticias_API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("LastNews", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Author")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "autor");
-
-                    b.Property<string>("Creator")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "creador");
-
-                    b.Property<string>("Date")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "fecha");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "descripcion");
-
-                    b.Property<int>("IdAuthor")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_autor");
-
-                    b.Property<int>("IdCreator")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_creador");
-
-                    b.Property<int>("IdNews")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_noticia");
-
-                    b.Property<int>("IdSection")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_seccion");
-
-                    b.Property<int>("IdSubSection")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "id_subseccion");
-
-                    b.Property<bool>("IsSound")
-                        .HasColumnType("bit")
-                        .HasAnnotation("Relational:JsonPropertyName", "isSound");
-
-                    b.Property<bool>("IsVideo")
-                        .HasColumnType("bit")
-                        .HasAnnotation("Relational:JsonPropertyName", "isVideo");
-
-                    b.Property<int>("Number")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "numero");
-
-                    b.Property<string>("Photo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "foto");
-
-                    b.Property<string>("PhotoCredits")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "foto_creditos");
-
-                    b.Property<string>("PhotoDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "foto_descripcion");
-
-                    b.Property<string>("PhotoMobile")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "foto_movil");
-
-                    b.Property<string>("Section")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "seccion");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "slug");
-
-                    b.Property<string>("SoundUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "SoundUrl");
-
-                    b.Property<string>("SubSection")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "subseccion");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "titulo");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "Tipo");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "url");
-
-                    b.Property<string>("VideoUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "videoUrl");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("LastNews");
-                });
 
             modelBuilder.Entity("MVS_Noticias_API.Models.Currency.Currency", b =>
                 {
@@ -236,6 +114,122 @@ namespace MVS_Noticias_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("MVS_Noticias_API.Models.News.LastNews", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Creator")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Date")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HiddenTags")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("IdAuthor")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdCreator")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdNews")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdSection")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdSubSection")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsSound")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVideo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("NewsQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Photo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhotoCredits")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhotoDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhotoMobile")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Section")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SoundUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SubSection")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VideoUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LastNews");
                 });
 
             modelBuilder.Entity("MVS_Noticias_API.Models.Programming.BroadcastInfo", b =>
@@ -417,50 +411,6 @@ namespace MVS_Noticias_API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("SavedNews");
-                });
-
-            modelBuilder.Entity("MVS_Noticias_API.Models.Saved.SavedPodcasts", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AudioPublicAdFreeUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AudioPublicUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float>("DurationSeconds")
-                        .HasColumnType("real");
-
-                    b.Property<string>("ImagePublicUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float>("PublishedDurationSeconds")
-                        .HasColumnType("real");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("savedPodcasts");
                 });
 
             modelBuilder.Entity("MVS_Noticias_API.Models.Saved.SavedVideos", b =>
@@ -728,17 +678,6 @@ namespace MVS_Noticias_API.Migrations
                 });
 
             modelBuilder.Entity("MVS_Noticias_API.Models.Saved.SavedNews", b =>
-                {
-                    b.HasOne("MVS_Noticias_API.Models.Domain.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MVS_Noticias_API.Models.Saved.SavedPodcasts", b =>
                 {
                     b.HasOne("MVS_Noticias_API.Models.Domain.User", "User")
                         .WithMany()

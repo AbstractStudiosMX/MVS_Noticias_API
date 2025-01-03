@@ -417,7 +417,7 @@ namespace MVS_Noticias_API.Controllers
                     UserId = user.Id,
                     Tendencias = notificationsSettingsDto.Tendencias,
                     Entrevistas = notificationsSettingsDto.Entrevistas,
-                    MVSDeportes = notificationsSettingsDto.MVSDeportes,
+                    Deportes = notificationsSettingsDto.MVSDeportes,
                     Nacional = notificationsSettingsDto.Nacional,
                     Videos = notificationsSettingsDto.Videos,
                     CDMX = notificationsSettingsDto.CDMX,
@@ -471,7 +471,7 @@ namespace MVS_Noticias_API.Controllers
 
                 notificationSettings.Tendencias = notificationsSettingsDto.Tendencias;
                 notificationSettings.Entrevistas = notificationsSettingsDto.Entrevistas;
-                notificationSettings.MVSDeportes = notificationsSettingsDto.MVSDeportes;
+                notificationSettings.Deportes = notificationsSettingsDto.MVSDeportes;
                 notificationSettings.Nacional = notificationsSettingsDto.Nacional;
                 notificationSettings.Videos = notificationsSettingsDto.Videos;
                 notificationSettings.CDMX = notificationsSettingsDto.CDMX;

@@ -42,42 +42,80 @@ namespace MVS_Noticias_API.Services
 
         private async Task CheckForNewsUpdates(DataContext dbContext)
         {
-            var httpClient = new HttpClient();
-            var apiUrl = "https://mvsnoticias.com/a/API/dinamico.asp?id_modulo=54"; // URL de la API de noticias
-            var response = await httpClient.GetAsync(apiUrl);
-            response.EnsureSuccessStatusCode();
-
-            var jsonString = await response.Content.ReadAsStringAsync();
-            var apiResponse = JsonSerializer.Deserialize<NoticiasResponse>(jsonString);
-
-            if (apiResponse?.Noticias == null || !apiResponse.Noticias.Any())
+            try
             {
-                _logger.LogWarning("No news found in the API response.");
-                return;
-            }
+                var httpClient = new HttpClient();
+                var apiUrl = "https://mvsnoticias.com/a/API/dinamico.asp?id_modulo=54";
+                var response = await httpClient.GetAsync(apiUrl);
+                response.EnsureSuccessStatusCode();
 
-            var latestNewsFromApi = apiResponse.Noticias.First();
-            var latestStoredNews = await dbContext.LastNews
-                .OrderByDescending(n => n.Date)
-                .FirstOrDefaultAsync();
+                var jsonString = await response.Content.ReadAsStringAsync();
+                
+                jsonString = jsonString.Replace("\"isVideo\": 0", "\"isVideo\": false")
+                                       .Replace("\"isVideo\": 1", "\"isVideo\": true")
+                                       .Replace("\"isSound\": 0", "\"isSound\": false")
+                                       .Replace("\"isSound\": 1", "\"isSound\": true");
 
-            if (latestStoredNews == null || latestNewsFromApi.IdNews != latestStoredNews.IdNews)
-            {
-                // Agrega la nueva noticia
-                dbContext.LastNews.Add(latestNewsFromApi);
+                var apiResponse = JsonSerializer.Deserialize<NoticiasResponse>(jsonString);
 
-                // Limita a las últimas 10 noticias
-                var allNews = await dbContext.LastNews.OrderByDescending(n => n.Date).ToListAsync();
-                if (allNews.Count > 10)
+                if (apiResponse?.Noticias == null || !apiResponse.Noticias.Any())
                 {
-                    var newsToRemove = allNews.Skip(10);
-                    dbContext.LastNews.RemoveRange(newsToRemove);
+                    _logger.LogWarning("No news found in the API response.");
+                    return;
                 }
 
-                await dbContext.SaveChangesAsync();
+                var latestNewsFromApi = new LastNews
+                {
+                    IdNews = apiResponse.Noticias[0].IdNews,
+                    Title = apiResponse.Noticias[0].Title,
+                    Description = apiResponse.Noticias[0].Description,
+                    Date = apiResponse.Noticias[0].Date,
+                    Section = apiResponse.Noticias[0].Section,
+                    SubSection = apiResponse.Noticias[0].Section,
+                    IdSection = apiResponse.Noticias[0].IdSection,
+                    IdSubSection = apiResponse.Noticias[0].IdSubSection,
+                    Url = apiResponse.Noticias[0].Url,
+                    Slug = apiResponse.Noticias[0].Slug,
+                    Photo = apiResponse.Noticias[0].Photo,
+                    PhotoMobile = apiResponse.Noticias[0].PhotoMobile,
+                    PhotoCredits = apiResponse.Noticias[0].PhotoCredits,
+                    PhotoDescription = apiResponse.Noticias[0].PhotoDescription,
+                    Author = apiResponse.Noticias[0].Author,
+                    IdAuthor = apiResponse.Noticias[0].Number,
+                    Creator = apiResponse.Noticias[0].Creator,
+                    IdCreator = apiResponse.Noticias[0].IdCreator,
+                    IsVideo = apiResponse.Noticias[0].IsVideo,
+                    VideoUrl = apiResponse.Noticias[0].VideoUrl,
+                    IsSound = apiResponse.Noticias[0].IsSound,
+                    SoundUrl = apiResponse.Noticias[0].SoundUrl,
+                    Type = apiResponse.Noticias[0].Type,
+                    Number = apiResponse.Noticias[0].Number
+                };
+                var latestStoredNews = await dbContext.LastNews
+                    .OrderByDescending(n => n.Date)
+                    .FirstOrDefaultAsync();
 
-                // Notifica a los clientes vía WebSocket
-                await NotifyFrontend(latestNewsFromApi);
+                if (latestStoredNews == null || latestNewsFromApi.IdNews != latestStoredNews.IdNews)
+                {
+                    dbContext.LastNews.Add(latestNewsFromApi);
+
+                    // Limita a las últimas 10 noticias
+                    var allNews = await dbContext.LastNews.OrderByDescending(n => n.Date).ToListAsync();
+                    if (allNews.Count > 10)
+                    {
+                        var newsToRemove = allNews.Skip(10);
+                        dbContext.LastNews.RemoveRange(newsToRemove);
+                    }
+
+                    await dbContext.SaveChangesAsync();
+
+                    await NotifyFrontend(latestNewsFromApi);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deserializing JSON: {ex.Message}");
+                throw;
             }
         }
 
