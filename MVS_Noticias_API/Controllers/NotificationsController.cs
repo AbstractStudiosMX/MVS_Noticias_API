@@ -26,13 +26,12 @@ namespace MVS_Noticias_API.Controllers
         }
 
         [HttpGet("allNotifications")]
-        public async Task<ActionResult<List<UserNotifications>>> GetUserNotifications(string userEmail)
+        public async Task<ActionResult> GetUserNotifications( string userEmail, int pageNumber = 1, int pageSize = 10, bool? isRead = null)
         {
-            _logger.LogInformation("Starting getting user notifications proccess.");
+            _logger.LogInformation("Starting getting user notifications process.");
 
             try
             {
-
                 var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
 
                 if (user == null)
@@ -40,9 +39,38 @@ namespace MVS_Noticias_API.Controllers
                     return NotFound("User not found.");
                 }
 
-                var notifications = await _dataContext.Notifications.Where(x => x.UserId == user.Id).ToListAsync();
+                var query = _dataContext.Notifications.Where(x => x.UserId == user.Id);
 
-                return Ok(notifications);
+                if (isRead.HasValue)
+                {
+                    query = query.Where(x => x.IsRead == isRead.Value);
+                }
+
+                var totalNotifications = await query.CountAsync();
+
+                var notifications = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.UserId,
+                        x.NewsId,
+                        x.Title,
+                        x.Content,
+                        x.Section,
+                        x.IsRead,
+                        x.IsNew,
+                        RegisterDate = DateTime.Parse(x.RegisterDate).ToString("o")
+                    })
+                    .ToListAsync();
+
+                var response = new
+                {
+                    Notifications = notifications
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -50,6 +78,7 @@ namespace MVS_Noticias_API.Controllers
                 return BadRequest("Error getting user notifications: " + ex.Message);
             }
         }
+
 
         [HttpPut("notification")]
         public async Task<ActionResult<List<UserNotifications>>> PutUserNotifications(string userEmail, int newsId)
