@@ -1,29 +1,56 @@
 ﻿using System.Net.WebSockets;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 
 namespace MVS_Noticias_API.Services
 {
-    public class WebSocketService
+    public static class WebSocketService
     {
-        private static readonly List<WebSocket> _connectedSockets = new();
+        private static readonly ConcurrentBag<WebSocket> _connectedSockets = new();
+        public static int MaxConnections { get; set; } = 100; // Valor por defecto
+        public static TimeSpan InactivityTimeout { get; set; } = TimeSpan.FromMinutes(5); // Valor por defecto
 
         public static async Task HandleWebSocketConnection(HttpContext context)
         {
+            if (_connectedSockets.Count >= MaxConnections)
+            {
+                context.Response.StatusCode = 503; // Servicio no disponible
+                await context.Response.WriteAsync("Max WebSocket connections reached.");
+                return;
+            }
+
             if (context.WebSockets.IsWebSocketRequest)
             {
                 var webSocket = await context.WebSockets.AcceptWebSocketAsync();
                 _connectedSockets.Add(webSocket);
 
-                var buffer = new byte[1024 * 4];
-                while (webSocket.State == WebSocketState.Open)
+                var lastActivity = DateTime.UtcNow;
+
+                try
                 {
-                    var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                    if (result.CloseStatus.HasValue)
+                    var buffer = new byte[1024 * 4];
+                    while (webSocket.State == WebSocketState.Open)
                     {
-                        _connectedSockets.Remove(webSocket);
-                        await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+                        // Cerrar la conexión si está inactiva por demasiado tiempo
+                        if (DateTime.UtcNow - lastActivity > InactivityTimeout)
+                        {
+                            break;
+                        }
+
+                        var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        if (result.CloseStatus.HasValue)
+                        {
+                            break;
+                        }
+
+                        lastActivity = DateTime.UtcNow; // Actualiza la última actividad
                     }
+                }
+                finally
+                {
+                    _connectedSockets.TryTake(out var _); // Elimina la conexión de la lista
+                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
                 }
             }
             else
@@ -41,11 +68,18 @@ namespace MVS_Noticias_API.Services
             {
                 if (socket.State == WebSocketState.Open)
                 {
-                    await socket.SendAsync(new ArraySegment<byte>(messageBuffer), WebSocketMessageType.Text, true, CancellationToken.None);
+                    try
+                    {
+                        await socket.SendAsync(new ArraySegment<byte>(messageBuffer), WebSocketMessageType.Text, true, CancellationToken.None);
+                    }
+                    catch
+                    {
+                        _connectedSockets.TryTake(out var _);
+                    }
                 }
                 else
                 {
-                    _connectedSockets.Remove(socket);
+                    _connectedSockets.TryTake(out var _);
                 }
             }
         }

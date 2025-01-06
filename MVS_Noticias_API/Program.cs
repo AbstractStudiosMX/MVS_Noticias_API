@@ -81,6 +81,10 @@ try
     }
 
     // WebSockets
+    var webSocketSettings = builder.Configuration.GetSection("WebSocketSettings");
+    WebSocketService.MaxConnections = webSocketSettings.GetValue<int>("MaxConnections");
+    WebSocketService.InactivityTimeout = TimeSpan.FromMinutes(webSocketSettings.GetValue<int>("InactivityTimeoutMinutes"));
+
     app.UseWebSockets();
 
     app.Map("/ws", async context =>
