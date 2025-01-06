@@ -186,6 +186,8 @@ namespace MVS_Noticias_API.Controllers
                     string seccion = notification.seccion;
                     string subseccion = notification.subseccion;
                     string targetSection = !string.IsNullOrEmpty(subseccion) ? subseccion : seccion;
+                    string idSubseccion = notification.id_subseccion;
+                    string idSeccion = notification.id_seccion;
 
                     // Map section to enum
                     if (!Enum.TryParse(targetSection.Replace(" ", ""), true, out NotificationSections sectionEnum))
@@ -217,7 +219,10 @@ namespace MVS_Noticias_API.Controllers
                             Section = subseccion != ""
                                         ? subseccion
                                         : seccion,
-                            RegisterDate = notification.fecha
+                            RegisterDate = notification.fecha,
+                            SectionId = idSubseccion != ""
+                                        ? idSubseccion
+                                        : idSeccion
 
                         };
                         savedNews.Add(savedNew);

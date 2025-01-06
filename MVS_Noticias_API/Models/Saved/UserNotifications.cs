@@ -14,6 +14,7 @@ namespace MVS_Noticias_API.Models.Saved
         public bool IsRead { get; set; } = false;
         public bool IsNew { get; set; } = false ;
         public string RegisterDate { get; set; } = string.Empty;
+        public string SectionId { get; set; } = string.Empty;
 
         [JsonIgnore]
         public User User { get; set; }
