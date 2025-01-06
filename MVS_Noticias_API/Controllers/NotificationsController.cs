@@ -59,6 +59,7 @@ namespace MVS_Noticias_API.Controllers
                         x.Title,
                         x.Content,
                         x.Section,
+                        x.SectionId,
                         x.IsRead,
                         x.IsNew,
                         RegisterDate = DateTime.Parse(x.RegisterDate).ToString("o")
