@@ -66,6 +66,9 @@ namespace MVS_Noticias_API.Controllers
                     RegisterDate = ConvertToISO(x.RegisterDate)
                 }).ToList();
 
+
+                notifications.Reverse();
+
                 var response = new
                 {
                     Notifications = notifications
