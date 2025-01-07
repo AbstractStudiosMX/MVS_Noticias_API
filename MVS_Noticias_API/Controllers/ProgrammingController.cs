@@ -42,6 +42,74 @@ namespace MVS_Noticias_API.Controllers
             }
         }
 
+        [HttpGet("currentProgram")]
+        public async Task<ActionResult<object>> GetCurrentProgram()
+        {
+            _logger.LogInformation("Started process to get the current program.");
+
+            try
+            {
+                TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+                DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, mexicoCityTimeZone);
+
+                int currentWeekday = (int)now.DayOfWeek;
+
+                var programs = await _dataContext.Programs.Include(p => p.BroadcastDates).ToListAsync();
+            
+                var currentBroadcast = programs
+                    .SelectMany(p => p.BroadcastDates.Select(b => new
+                    {
+                        Program = p,
+                        BroadcastDateTime = new DateTime(now.Year, now.Month, now.Day, b.Hour, b.Minute, 0),
+                        EndDateTime = new DateTime(now.Year, now.Month, now.Day, b.EndHour, b.Minute, 0),
+                        WeekDay = b.Weekday
+                    }))
+                    .Where(x => x.WeekDay == currentWeekday && x.EndDateTime > now && x.BroadcastDateTime.DayOfWeek == now.DayOfWeek)
+                    .OrderByDescending(x => x.BroadcastDateTime)
+                    .FirstOrDefault();
+
+                /*var upcomingBroadcast = programs
+                     .SelectMany(p => p.BroadcastDates.Select(b => new
+                     {
+                         Program = p,
+                         Broadcast = b,
+                         BroadcastDateTime = new DateTime(
+                             now.Year, now.Month, now.Day, b.Hour, b.Minute, 0)
+                     }))
+                     .Where(x => x.Broadcast.Weekday >= currentWeekday && x.BroadcastDateTime > now)
+                     .OrderBy(x => x.BroadcastDateTime)
+                     .FirstOrDefault();*/
+
+                if (currentBroadcast == null)
+                {
+                    _logger.LogInformation("No program currently airing.");
+                    return NotFound("No program currently airing.");
+                }
+
+                /*if (upcomingBroadcast == null)
+                {
+                    _logger.LogInformation("No program currently airing.");
+                    return NotFound("No program currently airing.");
+                }*/
+
+                var response = new
+                {
+                    CurrentProgram = currentBroadcast.Program,
+                    //UpcomingProgram = upcomingBroadcast.Program
+                };
+
+                _logger.LogInformation("Successfully fetched current program.");
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "An error has occurred while fetching the current program.");
+                return BadRequest("Could not fetch program information.");
+            }
+        }
+
+
+
         [HttpPost("program")]
         public async Task<ActionResult<Programming>> PostProgramming(ProgrammingDto request)
         {
