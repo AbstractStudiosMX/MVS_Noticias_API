@@ -12,7 +12,7 @@ namespace MVS_Noticias_API.Models.Saved
         public string Content { get; set; } = string.Empty;
         public string Section {  get; set; } = string.Empty;
         public bool IsRead { get; set; } = false;
-        public bool IsNew { get; set; } = false ;
+        public bool IsNew { get; set; } = true;
         public string RegisterDate { get; set; } = string.Empty;
         public string SectionId { get; set; } = string.Empty;
 

@@ -24,6 +24,9 @@ try
     //LastNews cron
     builder.Services.AddHostedService<NewsUpdateService>();
 
+    // Notifications cron
+    builder.Services.AddHostedService<NotificationPageUpdateService>();
+
     //Firebase 
     FirebaseApp.Create(new AppOptions 
     { 

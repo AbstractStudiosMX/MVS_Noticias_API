@@ -1,165 +1,49 @@
-﻿using FirebaseAdmin.Messaging;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using MVS_Noticias_API.Data;
 using MVS_Noticias_API.Models.Saved;
-using MVS_Noticias_API.Models.Settings;
 using Newtonsoft.Json;
-using static System.Collections.Specialized.BitVector32;
 
-namespace MVS_Noticias_API.Controllers
+namespace MVS_Noticias_API.Services
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class NotificationsController : ControllerBase
+    public class NotificationPageUpdateService : BackgroundService
     {
-        private readonly DataContext _dataContext;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<NewsUpdateService> _logger;
         public readonly IConfiguration _configuration;
-        private readonly ILogger _logger;
 
-        public NotificationsController(IConfiguration configuration, ILogger<NotificationsController> logger, DataContext dataContext)
+        public NotificationPageUpdateService(IServiceProvider serviceProvider, ILogger<NewsUpdateService> logger, IConfiguration configuration) 
         {
-            _configuration = configuration;
-            _dataContext = dataContext;
+            _serviceProvider = serviceProvider;
             _logger = logger;
+            _configuration = configuration;
         }
 
-        [HttpGet("allNotifications")]
-        public async Task<ActionResult> GetUserNotifications( string userEmail, int pageNumber = 1, int pageSize = 10, bool? isRead = null)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Starting getting user notifications process.");
-
-            try
+            while (!stoppingToken.IsCancellationRequested)
             {
-                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
-
-                if (user == null)
+                try
                 {
-                    return NotFound("User not found.");
+                    await SetUserNotifications();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error during news update: {ex.Message}");
                 }
 
-                var query = _dataContext.Notifications.Where(x => x.UserId == user.Id);
-
-                if (isRead.HasValue)
-                {
-                    query = query.Where(x => x.IsRead == isRead.Value);
-                }
-
-                var totalNotifications = await query.CountAsync();
-
-                var notifications = await query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(x => new
-                    {
-                        x.Id,
-                        x.UserId,
-                        x.NewsId,
-                        x.Title,
-                        x.Content,
-                        x.Section,
-                        x.SectionId,
-                        x.IsRead,
-                        x.IsNew,
-                        RegisterDate = DateTime.Parse(x.RegisterDate).ToString("o")
-                    })
-                    .ToListAsync();
-
-                var response = new
-                {
-                    Notifications = notifications
-                };
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error getting user notifications: " + ex.Message);
-                return BadRequest("Error getting user notifications: " + ex.Message);
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }
         }
 
-
-        [HttpPut("notification")]
-        public async Task<ActionResult<List<UserNotifications>>> PutUserNotifications(string userEmail, int newsId)
-        {
-            _logger.LogInformation("Starting putting user notifications proccess.");
-
-            try
-            {
-
-                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
-
-                if (user == null)
-                {
-                    return NotFound("User not found.");
-                }
-
-                var notification = await _dataContext.Notifications.FirstOrDefaultAsync(x => x.NewsId == newsId && x.UserId == user.Id);
-
-                if (notification == null)
-                {
-                    return NotFound("Notification not found.");
-                }
-
-                notification.IsRead = true;
-                notification.IsNew = true;
-
-                await _dataContext.SaveChangesAsync();
-
-                return Ok("Updated notification");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error putting user notifications: " + ex.Message);
-                return BadRequest("Error putting user notifications: " + ex.Message);
-            }
-        }
-
-        [HttpDelete("notification")]
-        public async Task<ActionResult<List<UserNotifications>>> DeleteUserNotifications(int newsId, string userEmail)
-        {
-            _logger.LogInformation("Starting delete notification proccess.");
-
-            try
-            {
-
-                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
-
-                if (user == null)
-                {
-                    return NotFound("User not found.");
-                }
-
-                var notification = await _dataContext.Notifications.FirstOrDefaultAsync(x => x.NewsId == newsId && x.UserId == user.Id);
-
-                if (notification == null)
-                {
-                    return NotFound("Notification not found.");
-                }
-
-
-                _dataContext.Notifications.Remove(notification);
-                await _dataContext.SaveChangesAsync();
-
-                return Ok("Notification deleted");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error deleting notification: " + ex.Message);
-                return BadRequest("Error deleting notification: " + ex.Message);
-            }
-        }
-
-        [HttpGet("notificationsOne")]
-        public async Task<ActionResult<List<Notification>>> GetUserNotifications()
+        public async Task SetUserNotifications()
         {
             _logger.LogInformation("Starting getting user notifications proccess.");
 
             try
             {
                 using var httpClient = new HttpClient();
+                using var scope = _serviceProvider.CreateScope();
+                var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
                 var apiOneSignal = _configuration.GetSection("AppSettings:OneSignalApiKey").Value;
                 var appIdOneSignal = _configuration.GetSection("AppSettings:OneSignalAppId").Value;
 
@@ -177,8 +61,8 @@ namespace MVS_Noticias_API.Controllers
                 var newsDataDetail = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                 // Filtrar usuarios sin configuración en NotificationSettings
-                var allUsers = await _dataContext.Users.Select(ns => ns.Id).ToListAsync();
-                var usersWithSettings = await _dataContext.NotificationsSettings.Where(ns => allUsers.Contains(ns.UserId)).ToListAsync();
+                var allUsers = await dataContext.Users.Select(ns => ns.Id).ToListAsync();
+                var usersWithSettings = await dataContext.NotificationsSettings.Where(ns => allUsers.Contains(ns.UserId)).ToListAsync();
                 var usersWithoutSettings = allUsers.Where(userId => !usersWithSettings.Any(ns => ns.UserId == userId)).ToList();
 
                 var savedNews = new List<UserNotifications>();
@@ -210,7 +94,7 @@ namespace MVS_Noticias_API.Controllers
                                         ? subseccion
                                         : seccion,
                             RegisterDate = notification.fecha,
-                            SectionId = idSubseccion != ""
+                            SectionId = idSubseccion != "0"
                                         ? idSubseccion
                                         : idSeccion
                         };
@@ -258,7 +142,7 @@ namespace MVS_Noticias_API.Controllers
 
                     foreach (var news in savedNews)
                     {
-                        bool exists = await _dataContext.Notifications
+                        bool exists = await dataContext.Notifications
                             .AnyAsync(n => n.UserId == news.UserId && n.NewsId == news.NewsId);
 
                         if (!exists)
@@ -267,19 +151,19 @@ namespace MVS_Noticias_API.Controllers
                         }
                     }
 
-                    var executionStrategy = _dataContext.Database.CreateExecutionStrategy();
+                    var executionStrategy = dataContext.Database.CreateExecutionStrategy();
 
                     await executionStrategy.ExecuteAsync(async () =>
                     {
-                        using var transaction = await _dataContext.Database.BeginTransactionAsync();
+                        using var transaction = await dataContext.Database.BeginTransactionAsync();
                         try
                         {
                             // Inserciones en lotes
                             for (int i = 0; i < uniqueNews.Count; i += batchSize)
                             {
                                 var batch = uniqueNews.Skip(i).Take(batchSize).ToList();
-                                await _dataContext.Notifications.AddRangeAsync(batch);
-                                await _dataContext.SaveChangesAsync();
+                                await dataContext.Notifications.AddRangeAsync(batch);
+                                await dataContext.SaveChangesAsync();
                             }
 
                             await transaction.CommitAsync();
@@ -294,12 +178,10 @@ namespace MVS_Noticias_API.Controllers
                     });
                 }
 
-                return Ok(savedNews);
             }
             catch (Exception ex)
             {
                 _logger.LogError("Error getting user notifications: " + ex.Message);
-                return BadRequest("Error getting user notifications: " + ex.Message);
             }
         }
 
@@ -324,4 +206,6 @@ namespace MVS_Noticias_API.Controllers
             Viral
         }
     }
+
+
 }
