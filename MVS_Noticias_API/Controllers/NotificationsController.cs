@@ -46,25 +46,25 @@ namespace MVS_Noticias_API.Controllers
                     query = query.Where(x => x.IsRead == isRead.Value);
                 }
 
-                var totalNotifications = await query.CountAsync();
-
-                var notifications = await query
+                var rawNotifications = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(x => new
-                    {
-                        x.Id,
-                        x.UserId,
-                        x.NewsId,
-                        x.Title,
-                        x.Content,
-                        x.Section,
-                        x.SectionId,
-                        x.IsRead,
-                        x.IsNew,
-                        RegisterDate = DateTime.Parse(x.RegisterDate).ToString("o")
-                    })
                     .ToListAsync();
+
+                // Realiza la conversión en memoria
+                var notifications = rawNotifications.Select(x => new
+                {
+                    x.Id,
+                    x.UserId,
+                    x.NewsId,
+                    x.Title,
+                    x.Content,
+                    x.Section,
+                    x.SectionId,
+                    x.IsRead,
+                    x.IsNew,
+                    RegisterDate = ConvertToISO(x.RegisterDate)
+                }).ToList();
 
                 var response = new
                 {
@@ -302,6 +302,14 @@ namespace MVS_Noticias_API.Controllers
                 return BadRequest("Error getting user notifications: " + ex.Message);
             }
         }
+
+        private string ConvertToISO(string date)
+        {
+            var parsedDate = DateTime.ParseExact(date, "d/M/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+
+            return parsedDate.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
 
         public enum NotificationSections
         {
