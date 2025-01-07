@@ -64,7 +64,7 @@ namespace MVS_Noticias_API.Controllers
                         EndDateTime = new DateTime(now.Year, now.Month, now.Day, b.EndHour, b.Minute, 0),
                         WeekDay = b.Weekday
                     }))
-                    .Where(x => x.WeekDay == currentWeekday && x.EndDateTime > now && x.BroadcastDateTime.DayOfWeek == now.DayOfWeek)
+                    .Where(x => x.WeekDay == currentWeekday && x.EndDateTime > now && x.BroadcastDateTime <= now)
                     .OrderByDescending(x => x.BroadcastDateTime)
                     .FirstOrDefault();
 
