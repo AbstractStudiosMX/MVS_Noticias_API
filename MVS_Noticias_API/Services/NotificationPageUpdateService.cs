@@ -60,9 +60,11 @@ namespace MVS_Noticias_API.Services
                 var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, newsData.notifications[0].data.idnota));
                 var newsDataDetail = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
+                TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
                 long unixDate = newsData.notifications[0].completed_at;
-                DateTime date = DateTimeOffset.FromUnixTimeSeconds(unixDate).DateTime;
-                string formattedDate = date.ToString("dd/MM/yyyy HH:mm:ss");
+                DateTime dateUtc = DateTimeOffset.FromUnixTimeSeconds(unixDate).UtcDateTime;
+                DateTime dateMexicoCity = TimeZoneInfo.ConvertTimeFromUtc(dateUtc, mexicoCityTimeZone);
+                string formattedDate = dateMexicoCity.ToString("dd/MM/yyyy HH:mm:ss");
 
                 // Filtrar usuarios sin configuración en NotificationSettings
                 var allUsers = await dataContext.Users.Select(ns => ns.Id).ToListAsync();
