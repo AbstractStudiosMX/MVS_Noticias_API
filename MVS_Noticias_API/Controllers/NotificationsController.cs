@@ -47,6 +47,7 @@ namespace MVS_Noticias_API.Controllers
                 }
 
                 var rawNotifications = await query
+                    .OrderByDescending(x => x.RegisterDate)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
@@ -66,8 +67,6 @@ namespace MVS_Noticias_API.Controllers
                     RegisterDate = ConvertToISO(x.RegisterDate)
                 }).ToList();
 
-
-                notifications.Reverse();
 
                 var response = new
                 {
