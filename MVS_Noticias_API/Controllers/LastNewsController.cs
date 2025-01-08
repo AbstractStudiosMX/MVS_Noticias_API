@@ -38,6 +38,9 @@ namespace MVS_Noticias_API.Controllers
                 {
                     return NotFound("Last news not found");
                 }
+
+                lastNews.Reverse();
+
                 return Ok(lastNews);
             }
             catch (Exception ex)
