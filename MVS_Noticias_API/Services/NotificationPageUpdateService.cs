@@ -60,6 +60,10 @@ namespace MVS_Noticias_API.Services
                 var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, newsData.notifications[0].data.idnota));
                 var newsDataDetail = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
+                long unixDate = newsData.notifications[0].completed_at;
+                DateTime date = DateTimeOffset.FromUnixTimeSeconds(unixDate).DateTime;
+                string formattedDate = date.ToString("dd/MM/yyyy HH:mm:ss");
+
                 // Filtrar usuarios sin configuración en NotificationSettings
                 var allUsers = await dataContext.Users.Select(ns => ns.Id).ToListAsync();
                 var usersWithSettings = await dataContext.NotificationsSettings.Where(ns => allUsers.Contains(ns.UserId)).ToListAsync();
@@ -82,6 +86,23 @@ namespace MVS_Noticias_API.Services
                         continue;
                     }
 
+                    // Se guarda al usuario root para que exista un histórico
+                    //var rootSavedNew = new UserNotifications
+                    //{
+                    //    UserId = 1,
+                    //    NewsId = notification.id_noticia,
+                    //    Title = notification.titulo,
+                    //    Content = notification.descripcion,
+                    //    Section = subseccion != ""
+                    //                    ? subseccion
+                    //                    : seccion,
+                    //    RegisterDate = formattedDate,
+                    //    SectionId = idSubseccion != "0"
+                    //                    ? idSubseccion
+                    //                    : idSeccion
+                    //};
+                    //savedNews.Add(rootSavedNew);
+
                     foreach (var userId in usersWithoutSettings)
                     {
                         var savedNew = new UserNotifications
@@ -93,7 +114,7 @@ namespace MVS_Noticias_API.Services
                             Section = subseccion != ""
                                         ? subseccion
                                         : seccion,
-                            RegisterDate = notification.fecha,
+                            RegisterDate = formattedDate,
                             SectionId = idSubseccion != "0"
                                         ? idSubseccion
                                         : idSeccion
@@ -124,7 +145,7 @@ namespace MVS_Noticias_API.Services
                             Section = subseccion != ""
                                         ? subseccion
                                         : seccion,
-                            RegisterDate = notification.fecha,
+                            RegisterDate = formattedDate,
                             SectionId = idSubseccion != "0"
                                         ? idSubseccion
                                         : idSeccion
