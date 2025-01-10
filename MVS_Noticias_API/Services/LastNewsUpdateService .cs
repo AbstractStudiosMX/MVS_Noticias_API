@@ -92,7 +92,7 @@ namespace MVS_Noticias_API.Services
                     Number = apiResponse.Noticias[0].Number
                 };
                 var latestStoredNews = await dbContext.LastNews
-                    .OrderByDescending(n => n.Date)
+                    .OrderBy(n => n.Date)
                     .FirstOrDefaultAsync();
 
                 if (latestStoredNews == null || latestNewsFromApi.IdNews != latestStoredNews.IdNews)
