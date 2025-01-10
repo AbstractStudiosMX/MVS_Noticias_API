@@ -56,6 +56,8 @@ namespace MVS_Noticias_API.Services
                     (string.Format($"https://onesignal.com/api/v1/notifications?limit={limit}&kind=1&app_id={appIdOneSignal}"));
                 var newsData = JsonConvert.DeserializeObject<dynamic>(responseOneSignal);
 
+                string originalTitle = newsData.notifications[0].contents.en;
+
                 var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
                 var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, newsData.notifications[0].data.idnota));
                 var newsDataDetail = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
@@ -111,8 +113,8 @@ namespace MVS_Noticias_API.Services
                         {
                             UserId = userId,
                             NewsId = notification.id_noticia,
-                            Title = notification.titulo,
-                            Content = notification.descripcion,
+                            Title = originalTitle,
+                            Content = notification.titulo,
                             Section = subseccion != ""
                                         ? subseccion
                                         : seccion,
@@ -142,8 +144,8 @@ namespace MVS_Noticias_API.Services
                         {
                             UserId = user.UserId,
                             NewsId = notification.id_noticia,
-                            Title = notification.titulo,
-                            Content = notification.descripcion,
+                            Title = originalTitle,
+                            Content = notification.titulo,
                             Section = subseccion != ""
                                         ? subseccion
                                         : seccion,
