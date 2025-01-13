@@ -57,7 +57,9 @@ namespace MVS_Noticias_API.Controllers
 
             try
             {
-                var lastNews = await _dataContext.LastNews.FirstOrDefaultAsync();
+                var lastNews = await _dataContext.LastNews
+                    .OrderBy(n => n.Date)
+                    .FirstOrDefaultAsync();
 
                 if (lastNews == null)
                 {
