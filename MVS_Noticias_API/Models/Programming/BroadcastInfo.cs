@@ -7,13 +7,14 @@ namespace MVS_Noticias_API.Models.Programming
         [JsonIgnore]
         public int Id { get; set; }
         public int Weekday { get; set; }
-        public int Hour { get; set; }
-        public int Minute { get; set; }
+        public int StartHour { get; set; }
+        public int StartMinute { get; set; }
         public int EndHour { get; set; }
+        public int EndMinute { get; set; }
 
         [JsonIgnore]
         public int ProgrammingId { get; set; }
         [JsonIgnore]
-        public Programming Programming { get; set; }
+        public Programming? Programming { get; set; }
     }
 }

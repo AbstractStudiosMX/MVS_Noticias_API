@@ -26,7 +26,7 @@ namespace MVS_Noticias_API.Controllers
         }
 
         [HttpGet("allPrograms")]
-        public async Task<ActionResult<AccessibilitySettings>> GetAllPrograms()
+        public async Task<ActionResult<Programming>> GetAllPrograms()
         {
             _logger.LogInformation("Started getting all programs proccess.");
 
@@ -39,6 +39,23 @@ namespace MVS_Noticias_API.Controllers
             {
                 _logger.LogError("Error getting programming: " + ex.Message);
                 return BadRequest("Error getting programming: " + ex.Message);
+            }
+        }
+
+        [HttpGet("program")]
+        public async Task<ActionResult<Programming>> GetProgram(int idProgram)
+        {
+            _logger.LogInformation("Started getting program proccess.");
+
+            try
+            {
+                var program = await _dataContext.Programs.Where(p => p.Id == idProgram).Include(p => p.BroadcastDates).ToListAsync();
+                return Ok(program);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error getting program: " + ex.Message);
+                return BadRequest("Error getting program: " + ex.Message);
             }
         }
 
@@ -60,8 +77,8 @@ namespace MVS_Noticias_API.Controllers
                     .SelectMany(p => p.BroadcastDates.Select(b => new
                     {
                         Program = p,
-                        BroadcastDateTime = new DateTime(now.Year, now.Month, now.Day, b.Hour, b.Minute, 0),
-                        EndDateTime = new DateTime(now.Year, now.Month, now.Day, b.EndHour, b.Minute, 0),
+                        BroadcastDateTime = new DateTime(now.Year, now.Month, now.Day, b.StartHour, b.StartMinute, 0),
+                        EndDateTime = new DateTime(now.Year, now.Month, now.Day, b.EndHour, b.EndMinute, 0),
                         WeekDay = b.Weekday
                     }))
                     .Where(x => x.WeekDay == currentWeekday && x.EndDateTime > now && x.BroadcastDateTime <= now)
@@ -142,7 +159,7 @@ namespace MVS_Noticias_API.Controllers
             }
         }
 
-        [HttpPut("program")]
+        /*[HttpPut("program")]
         public async Task<ActionResult<Programming>> PutProgramming(ProgrammingDto request)
         {
             _logger.LogInformation("Starting put programming process.");
@@ -174,9 +191,9 @@ namespace MVS_Noticias_API.Controllers
             catch (Exception e)
             {
                 _logger.LogError(e, "An error has ocurred.");
-                return BadRequest("Could not update program.");
+                return BadRequest("Could not update program."+e);
             }
-        }
+        }*/
 
         [HttpDelete("program")]
         public async Task<ActionResult<Programming>> DeleteProgramming(int programId)
