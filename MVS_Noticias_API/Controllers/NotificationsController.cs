@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Graph.CallRecords;
 using MVS_Noticias_API.Data;
+using MVS_Noticias_API.Migrations;
 using MVS_Noticias_API.Models.Saved;
 using MVS_Noticias_API.Models.Settings;
 using Newtonsoft.Json;
@@ -15,12 +17,14 @@ namespace MVS_Noticias_API.Controllers
     public class NotificationsController : ControllerBase
     {
         private readonly DataContext _dataContext;
+        private readonly IServiceProvider _serviceProvider;
         public readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 
-        public NotificationsController(IConfiguration configuration, ILogger<NotificationsController> logger, DataContext dataContext)
+        public NotificationsController(IConfiguration configuration, ILogger<NotificationsController> logger, DataContext dataContext, IServiceProvider serviceProvider)
         {
             _configuration = configuration;
+            _serviceProvider = serviceProvider;
             _dataContext = dataContext;
             _logger = logger;
         }
@@ -79,6 +83,60 @@ namespace MVS_Noticias_API.Controllers
             {
                 _logger.LogError("Error getting user notifications: " + ex.Message);
                 return BadRequest("Error getting user notifications: " + ex.Message);
+            }
+        }
+
+        [HttpGet("allNotificationsOneSignal")]
+        public async Task<ActionResult> GetNotificationsOneSignal(int limit)
+        {
+            _logger.LogInformation("Starting getting one signal notifications process.");
+
+            try
+            {
+
+                using var httpClient = new HttpClient();
+                using var scope = _serviceProvider.CreateScope();
+                var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+                var apiOneSignal = _configuration.GetSection("AppSettings:OneSignalApiKey").Value;
+                var appIdOneSignal = _configuration.GetSection("AppSettings:OneSignalAppId").Value;
+                
+
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {apiOneSignal}");
+                httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                var responseOneSignal = await httpClient.GetStringAsync
+                    (string.Format($"https://onesignal.com/api/v1/notifications?limit={limit}&kind=1&app_id={appIdOneSignal}"));
+                var newsData = JsonConvert.DeserializeObject<dynamic>(responseOneSignal);
+
+                var onesignalNotifications = new List<UserNotifications>();
+
+                foreach ( var notification in newsData.notifications)
+                {
+                    TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+                    long unixDate = notification.completed_at;
+                    DateTime dateUtc = DateTimeOffset.FromUnixTimeSeconds(unixDate).UtcDateTime;
+                    DateTime dateMexicoCity = TimeZoneInfo.ConvertTimeFromUtc(dateUtc, mexicoCityTimeZone);
+                    string formattedDate = dateMexicoCity.ToString("dd/MM/yyyy HH:mm:ss");
+
+                    var News = new UserNotifications
+                    {
+                        UserId = 0,
+                        NewsId = notification.data.idnota,
+                        Title = notification.contents.en,
+                        Content = "",
+                        Section = "",
+                        RegisterDate = formattedDate,
+                        SectionId = ""
+                    };
+                    onesignalNotifications.Add(News);
+                }
+
+                return Ok(onesignalNotifications);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error getting one signal notifications: " + ex.Message);
+                return BadRequest("Error getting one signal notifications: " + ex.Message);
             }
         }
 
