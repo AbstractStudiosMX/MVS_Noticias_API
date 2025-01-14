@@ -12,6 +12,7 @@ namespace MVS_Noticias_API.Controllers
         {
             var sections = new List<Section>
             {
+                new Section { Id = 111111, Name = "Última hora" },
                 new Section
                 {
                     Id = 751,
@@ -33,7 +34,16 @@ namespace MVS_Noticias_API.Controllers
                     }
                 },
                 new Section { Id = 752, Name = "Mundo" },
-                new Section { Id = 655144, Name = "Podcast" },
+                new Section
+                {
+                    Id = 758451,
+                    Name = "Multimedia",
+                    Subsections = new List<Subsection>
+                    {
+                         new Subsection { Id = 655144, Name = "Podcast" },
+                         new Subsection { Id = 759, Name = "Video" },
+                    }
+                },
                 new Section { Id = 753, Name = "Economía" },
                 new Section { Id = 754, Name = "Entretenimiento" },
                 new Section
@@ -50,7 +60,6 @@ namespace MVS_Noticias_API.Controllers
                 },
                 new Section { Id = 756, Name = "Opinión" },
                 new Section { Id = 758, Name = "Entrevistas" },
-                new Section { Id = 759, Name = "Video" },
                 new Section { Id = 760, Name = "Deportes" },
                 new Section { Id = 788999, Name = "Programación" },
                 new Section { Id = 788100, Name = "Guardados" },
