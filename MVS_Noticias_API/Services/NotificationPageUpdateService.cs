@@ -56,10 +56,23 @@ namespace MVS_Noticias_API.Services
                     (string.Format($"https://onesignal.com/api/v1/notifications?limit={limit}&kind=1&app_id={appIdOneSignal}"));
                 var newsData = JsonConvert.DeserializeObject<dynamic>(responseOneSignal);
 
+                int idNota = newsData.notifications[0].data.idnota;
+
+                // Validar si el idNota ya fue procesado previamente
+                var lastNotificationSaved = await dataContext.Notifications
+                    .OrderByDescending(n => n.RegisterDate)
+                    .FirstOrDefaultAsync(n => n.UserId == 53 && n.NewsId == idNota);
+
+                if (lastNotificationSaved != null)
+                {
+                    _logger.LogInformation($"Notification with idNota {idNota} has already been processed. Skipping.");
+                    return;
+                }
+
                 string originalTitle = newsData.notifications[0].contents.en;
 
                 var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
-                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, newsData.notifications[0].data.idnota));
+                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, idNota));
                 var newsDataDetail = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                 TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
