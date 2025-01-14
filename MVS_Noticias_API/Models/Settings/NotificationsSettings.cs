@@ -7,23 +7,23 @@ namespace MVS_Noticias_API.Models.Settings
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public bool Tendencias { get; set; }
-        public bool Entrevistas { get; set; }
-        public bool Deportes { get; set; }
-        public bool Nacional { get; set; }
-        public bool Videos { get; set; }
-        public bool CDMX { get; set; }
-        public bool Entretenimiento { get; set; }
-        public bool Opinion { get; set; }
-        public bool Economia { get; set; }
-        public bool Estados { get; set; }
-        public bool Mundo { get; set; }
-        public bool Mascotas { get; set; }
-        public bool SaludBienestar { get; set; }
-        public bool Policiaca { get; set; }
-        public bool Programacion { get; set; }
-        public bool CienciaTecnologia { get; set; }
-        public bool Viral { get; set; }
+        public bool Tendencias { get; set; } = true;
+        public bool Entrevistas { get; set; } = true;
+        public bool Deportes { get; set; } = true;
+        public bool Nacional { get; set; } = true;
+        public bool Videos { get; set; } = true;
+        public bool CDMX { get; set; } = true;
+        public bool Entretenimiento { get; set; } = true;
+        public bool Opinion { get; set; } = true;
+        public bool Economia { get; set; } = true;
+        public bool Estados { get; set; } = true;
+        public bool Mundo { get; set; } = true;
+        public bool Mascotas { get; set; } = true;
+        public bool SaludBienestar { get; set; } = true;
+        public bool Policiaca { get; set; } = true;
+        public bool Programacion { get; set; } = true;
+        public bool CienciaTecnologia { get; set; } = true;
+        public bool Viral { get; set; } = true;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public string Keywords { get; set; } = string.Empty;

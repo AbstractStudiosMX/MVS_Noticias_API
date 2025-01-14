@@ -34,7 +34,7 @@ namespace MVS_Noticias_API.Controllers
                 var httpClient = new HttpClient();
                
                 var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
-                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_seccion={1}&contenido=si&limite={2}&pagina={3}", apiEditor80, section, limit, page));
+                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_seccion={1}&contenido=no&limite={2}&pagina={3}", apiEditor80, section, limit, page));
                 var newsData = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
 
                 var formattedNews = new List<VideoStatistics>();
@@ -108,7 +108,7 @@ namespace MVS_Noticias_API.Controllers
                             Autor = news.autor,
                             Url = news.url,
                             Date = news.fecha,
-                            Description = news.descripcion,
+                            Description = news.descripcion ,
                             VideoURL = "",
                             ViewsNumber = 0,
                             VideoDuration = "",

@@ -380,7 +380,28 @@ namespace MVS_Noticias_API.Controllers
 
                 if (notificationSettings == null)
                 {
-                    return NotFound("Notification settings not found.");
+                    notificationSettings = new NotificationsSettings
+                    {
+                        UserId = user.Id,
+                        Tendencias = true,
+                        Entrevistas = true,
+                        Deportes = true,
+                        Nacional = true,
+                        Videos = true,
+                        CDMX = true,
+                        Entretenimiento = true,
+                        Opinion = true,
+                        Economia = true,
+                        Estados = true,
+                        Mundo = true,
+                        Mascotas = true,
+                        SaludBienestar = true,
+                        Policiaca = true,
+                        Programacion = true,
+                        CienciaTecnologia = true,
+                        Viral = true
+                    };
+                    return Ok(notificationSettings);
                 }
 
                 return Ok(notificationSettings);

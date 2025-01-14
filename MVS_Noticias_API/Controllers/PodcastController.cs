@@ -25,7 +25,7 @@ namespace MVS_Noticias_API.Controllers
 
 
         [HttpGet("allPrograms")]
-        public async Task<ActionResult<List<ProgramPodcast>>> GetAllPrograms(int amount , int page)
+        public async Task<ActionResult<List<ProgramPodcast>>> GetAllPrograms(int amount, int page)
         {
             _logger.LogInformation("Starting get all programs podcast.");
 
@@ -37,25 +37,30 @@ namespace MVS_Noticias_API.Controllers
                 var keyOmnistudio = _configuration.GetSection("AppSettings:OmnistudioKey").Value;
 
                 var responseOmnistudio = await httpClient.GetStringAsync(string.Format("{0}network/{1}/{2}/{3}", apiOmnistudio, keyOmnistudio, amount, page));
-                var podcastData = JsonConvert.DeserializeObject<dynamic>(responseOmnistudio);
+                var podcastData = JsonConvert.DeserializeObject<List<dynamic>>(responseOmnistudio);
+
+                var allowedIndices = new List<int> { 23, 20, 9, 18, 19, 22, 6, 17, 21, 10, 15, 13, 30, 29, 27, 26, 16, 14, 24, 12, 11, 25, 4, 5, 7, 8 };
 
                 var programList = new List<ProgramPodcast>();
-                int indexCounter = 0;
 
-                foreach (var program in podcastData)
+                foreach (var index in allowedIndices)
                 {
-                    var programInfo = new ProgramPodcast
+                    if (index >= 0 && index < podcastData.Count)
                     {
-                        Index = indexCounter++,
-                        Id = program.Id,
-                        NetworkId = program.NetworkId,
-                        Name = program.Name,
-                        Slug = program.Slug,
-                        HasImage = program.HasImage,
-                        ImagePublicUrl = program.ImagePublicUrl,
-                        Description = program.Description,
-                    };
-                    programList.Add(programInfo);
+                        var program = podcastData[index];
+                        var programInfo = new ProgramPodcast
+                        {
+                            Index = index,
+                            Id = program.Id,
+                            NetworkId = program.NetworkId,
+                            Name = program.Name,
+                            Slug = program.Slug,
+                            HasImage = program.HasImage,
+                            ImagePublicUrl = program.ImagePublicUrl,
+                            Description = program.Description,
+                        };
+                        programList.Add(programInfo);
+                    }
                 }
 
                 return Ok(programList);
@@ -66,6 +71,7 @@ namespace MVS_Noticias_API.Controllers
                 return BadRequest("Error getting podcast programs: " + ex.Message);
             }
         }
+
 
         [HttpGet("programAudios")]
         public async Task<ActionResult<List<AudioPodcast>>> GetProgramAudios(string programId, int amount, int page)
