@@ -11,7 +11,6 @@ namespace MVS_Noticias_API.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<NewsUpdateService> _logger;
-        private readonly DataContext _dbContext;
 
         public NewsUpdateService(IServiceProvider serviceProvider, ILogger<NewsUpdateService> logger)
         {
@@ -35,7 +34,6 @@ namespace MVS_Noticias_API.Services
                     _logger.LogError($"Error during news update: {ex.Message}");
                 }
 
-                // Espera un intervalo configurable (e.g., cada 5 minutos)
                 await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
             }
         }
@@ -50,7 +48,7 @@ namespace MVS_Noticias_API.Services
                 response.EnsureSuccessStatusCode();
 
                 var jsonString = await response.Content.ReadAsStringAsync();
-                
+
                 jsonString = jsonString.Replace("\"isVideo\": 0", "\"isVideo\": false")
                                        .Replace("\"isVideo\": 1", "\"isVideo\": true")
                                        .Replace("\"isSound\": 0", "\"isSound\": false")
@@ -64,39 +62,37 @@ namespace MVS_Noticias_API.Services
                     return;
                 }
 
-                var latestNewsFromApi = new LastNews
+                var exists = await dbContext.LastNews.AnyAsync(n => n.IdNews == apiResponse.Noticias[0].IdNews);
+                if (!exists)
                 {
-                    IdNews = apiResponse.Noticias[0].IdNews,
-                    Title = apiResponse.Noticias[0].Title,
-                    Description = apiResponse.Noticias[0].Description,
-                    Date = apiResponse.Noticias[0].Date,
-                    Section = apiResponse.Noticias[0].Section,
-                    SubSection = apiResponse.Noticias[0].Section,
-                    IdSection = apiResponse.Noticias[0].IdSection,
-                    IdSubSection = apiResponse.Noticias[0].IdSubSection,
-                    Url = apiResponse.Noticias[0].Url,
-                    Slug = apiResponse.Noticias[0].Slug,
-                    Photo = apiResponse.Noticias[0].Photo,
-                    PhotoMobile = apiResponse.Noticias[0].PhotoMobile,
-                    PhotoCredits = apiResponse.Noticias[0].PhotoCredits,
-                    PhotoDescription = apiResponse.Noticias[0].PhotoDescription,
-                    Author = apiResponse.Noticias[0].Author,
-                    IdAuthor = apiResponse.Noticias[0].Number,
-                    Creator = apiResponse.Noticias[0].Creator,
-                    IdCreator = apiResponse.Noticias[0].IdCreator,
-                    IsVideo = apiResponse.Noticias[0].IsVideo,
-                    VideoUrl = apiResponse.Noticias[0].VideoUrl,
-                    IsSound = apiResponse.Noticias[0].IsSound,
-                    SoundUrl = apiResponse.Noticias[0].SoundUrl,
-                    Type = apiResponse.Noticias[0].Type,
-                    Number = apiResponse.Noticias[0].Number
-                };
-                var latestStoredNews = await dbContext.LastNews
-                    .OrderBy(n => n.Date)
-                    .FirstOrDefaultAsync();
+                    var latestNewsFromApi = new LastNews
+                    {
+                        IdNews = apiResponse.Noticias[0].IdNews,
+                        Title = apiResponse.Noticias[0].Title,
+                        Description = apiResponse.Noticias[0].Description,
+                        Date = apiResponse.Noticias[0].Date,
+                        Section = apiResponse.Noticias[0].Section,
+                        SubSection = apiResponse.Noticias[0].Section,
+                        IdSection = apiResponse.Noticias[0].IdSection,
+                        IdSubSection = apiResponse.Noticias[0].IdSubSection,
+                        Url = apiResponse.Noticias[0].Url,
+                        Slug = apiResponse.Noticias[0].Slug,
+                        Photo = apiResponse.Noticias[0].Photo,
+                        PhotoMobile = apiResponse.Noticias[0].PhotoMobile,
+                        PhotoCredits = apiResponse.Noticias[0].PhotoCredits,
+                        PhotoDescription = apiResponse.Noticias[0].PhotoDescription,
+                        Author = apiResponse.Noticias[0].Author,
+                        IdAuthor = apiResponse.Noticias[0].Number,
+                        Creator = apiResponse.Noticias[0].Creator,
+                        IdCreator = apiResponse.Noticias[0].IdCreator,
+                        IsVideo = apiResponse.Noticias[0].IsVideo,
+                        VideoUrl = apiResponse.Noticias[0].VideoUrl,
+                        IsSound = apiResponse.Noticias[0].IsSound,
+                        SoundUrl = apiResponse.Noticias[0].SoundUrl,
+                        Type = apiResponse.Noticias[0].Type,
+                        Number = apiResponse.Noticias[0].Number
+                    };
 
-                if (latestStoredNews == null || latestNewsFromApi.IdNews != latestStoredNews.IdNews)
-                {
                     dbContext.LastNews.Add(latestNewsFromApi);
 
                     // Limita a las últimas 10 noticias
@@ -109,7 +105,14 @@ namespace MVS_Noticias_API.Services
 
                     await dbContext.SaveChangesAsync();
 
+                    // Notificar al frontend
                     await NotifyFrontend(latestNewsFromApi);
+
+                    _logger.LogInformation($"Nueva noticia agregada: {latestNewsFromApi.Title}");
+                }
+                else
+                {
+                    _logger.LogInformation($"La noticia con ID {apiResponse.Noticias[0].IdNews} ya existe en la base de datos.");
                 }
             }
             catch (Exception ex)
@@ -119,52 +122,9 @@ namespace MVS_Noticias_API.Services
             }
         }
 
-
-        public async Task SaveNews(List<LastNews> newsList)
-        {
-            var dbNews = await _dbContext.LastNews.OrderByDescending(n => n.Date).ToListAsync();
-            bool newNewsAdded = false;
-
-            foreach (var news in newsList)
-            {
-                if (!dbNews.Any(n => n.IdNews == news.IdNews))
-                {
-                    // Agregar noticia si no existe
-                    _dbContext.LastNews.Add(news);
-                    newNewsAdded = true;
-                }
-            }
-
-            // Mantener solo las últimas 10 noticias
-            var excessNews = dbNews.Skip(10).ToList();
-            if (excessNews.Any())
-            {
-                _dbContext.LastNews.RemoveRange(excessNews);
-            }
-
-            await _dbContext.SaveChangesAsync();
-
-            // Notificar a través de WebSocket si hay noticias nuevas
-            if (newNewsAdded)
-            {
-                var latestNews = await _dbContext.LastNews
-                    .OrderByDescending(n => n.Date)
-                    .Take(1)
-                    .FirstOrDefaultAsync();
-
-                if (latestNews != null)
-                {
-                    await WebSocketService.NotifyClientsAsync(latestNews);
-                }
-            }
-        }
-
-
         private async Task NotifyFrontend(LastNews news)
         {
-           await WebSocketService.NotifyClientsAsync(news);
+            await WebSocketService.NotifyClientsAsync(news);
         }
     }
-
-
 }
