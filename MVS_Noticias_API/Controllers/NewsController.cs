@@ -158,29 +158,40 @@ namespace MVS_Noticias_API.Controllers
             }
         }
 
-            private string RemoveHtmlTags(string htmlContent)
+        private string RemoveHtmlTags(string htmlContent)
+        {
+            if (string.IsNullOrWhiteSpace(htmlContent))
+                return string.Empty;
+
+            var document = new HtmlAgilityPack.HtmlDocument();
+            document.LoadHtml(htmlContent);
+
+            var embeddedContentNodes = document.DocumentNode.SelectNodes("//iframe|//blockquote[contains(@class, 'twitter')]");
+            embeddedContentNodes?.ToList().ForEach(node => node.Remove());
+
+            var relatedNewsNodes = document.DocumentNode.SelectNodes("//aside[contains(@class, 'relacionadas')]");
+            relatedNewsNodes?.ToList().ForEach(node => node.Remove());
+
+            var anchorNodes = document.DocumentNode.SelectNodes("//a");
+            if (anchorNodes != null)
             {
-                if (string.IsNullOrWhiteSpace(htmlContent))
-                    return string.Empty;
-
-                var document = new HtmlAgilityPack.HtmlDocument();
-                document.LoadHtml(htmlContent);
-
-                var embeddedContentNodes = document.DocumentNode.SelectNodes("//iframe|//blockquote[contains(@class, 'twitter')]");
-                embeddedContentNodes?.ToList().ForEach(node => node.Remove());
-
-                var relatedNewsNodes = document.DocumentNode.SelectNodes("//aside[contains(@class, 'relacionadas')]");
-                relatedNewsNodes?.ToList().ForEach(node => node.Remove());
-
-                var nodesToRemove = document.DocumentNode.SelectNodes("//a|//img");
-                nodesToRemove?.ToList().ForEach(node => node.Remove());
-
-                var plainText = document.DocumentNode.InnerText;
-
-                return CleanSpecialCharacters(plainText);
+                foreach (var anchor in anchorNodes)
+                {
+                    var textNode = HtmlAgilityPack.HtmlNode.CreateNode(anchor.InnerText);
+                    anchor.ParentNode.ReplaceChild(textNode, anchor);
+                }
             }
 
-            private string CleanSpecialCharacters(string text)
+            var imageNodes = document.DocumentNode.SelectNodes("//img");
+            imageNodes?.ToList().ForEach(node => node.Remove());
+
+            var plainText = document.DocumentNode.InnerText;
+
+            return CleanSpecialCharacters(plainText);
+        }
+
+
+        private string CleanSpecialCharacters(string text)
             {
                 if (string.IsNullOrWhiteSpace(text))
                     return string.Empty;
