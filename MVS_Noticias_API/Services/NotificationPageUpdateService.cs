@@ -58,12 +58,10 @@ namespace MVS_Noticias_API.Services
 
                 int idNota = newsData.notifications[0].data.idnota;
 
-                // Validar si el idNota ya fue procesado previamente
-                var lastNotificationSaved = await dataContext.Notifications
-                    .OrderByDescending(n => n.RegisterDate)
-                    .FirstOrDefaultAsync(n => n.UserId == 53 && n.NewsId == idNota);
+                var lastNotificationSent = await dataContext.LastNotificationSent.FirstOrDefaultAsync();
 
-                if (lastNotificationSaved != null)
+                // Si la noticia es la misma nos salimos del flujo
+                if (lastNotificationSent!.NewsId == idNota)
                 {
                     _logger.LogInformation($"Notification with idNota {idNota} has already been processed. Skipping.");
                     return;
@@ -216,6 +214,9 @@ namespace MVS_Noticias_API.Services
                     });
                 }
 
+                // Actualizamos la última notificación en la tabla de LastNotificationSent
+                lastNotificationSent.NewsId = idNota;
+                await dataContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {

@@ -25,5 +25,7 @@ namespace MVS_Noticias_API.Data
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<UserNotifications> Notifications { get; set; }
         public DbSet<LastNews> LastNews { get; set; }
+        public DbSet<LastNotificationSent> LastNotificationSent { get; set; }
+
     }
 }
