@@ -95,7 +95,6 @@ namespace MVS_Noticias_API.Services
 
                     dbContext.LastNews.Add(latestNewsFromApi);
 
-                    // Limita a las últimas 10 noticias
                     var allNews = await dbContext.LastNews.OrderByDescending(n => n.Date).ToListAsync();
                     if (allNews.Count > 10)
                     {
@@ -105,7 +104,6 @@ namespace MVS_Noticias_API.Services
 
                     await dbContext.SaveChangesAsync();
 
-                    // Notificar al frontend
                     await NotifyFrontend(latestNewsFromApi);
 
                     _logger.LogInformation($"Nueva noticia agregada: {latestNewsFromApi.Title}");

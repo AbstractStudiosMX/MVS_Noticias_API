@@ -399,7 +399,8 @@ namespace MVS_Noticias_API.Controllers
                         Policiaca = true,
                         Programacion = true,
                         CienciaTecnologia = true,
-                        Viral = true
+                        Viral = true,
+                        Guardados = true,
                     };
                     return Ok(notificationSettings);
                 }
@@ -453,6 +454,7 @@ namespace MVS_Noticias_API.Controllers
                     Programacion = notificationsSettingsDto.Programacion,
                     CienciaTecnologia = notificationsSettingsDto.CienciaTecnologia,
                     Viral = notificationsSettingsDto.Viral,
+                    Guardados = notificationsSettingsDto.Guardados,
                     StartTime = notificationsSettingsDto.StartTime,
                     EndTime = notificationsSettingsDto.EndTime,
                     Keywords = notificationsSettingsDto.Keywords
@@ -510,6 +512,7 @@ namespace MVS_Noticias_API.Controllers
                 notificationSettings.StartTime = notificationsSettingsDto.StartTime;
                 notificationSettings.EndTime = notificationsSettingsDto.EndTime;
                 notificationSettings.Keywords = notificationsSettingsDto.Keywords;
+                notificationSettings.Guardados = notificationsSettingsDto.Guardados;
 
                 await _dataContext.SaveChangesAsync();
 

@@ -19,6 +19,7 @@
         public bool Policiaca { get; set; }
         public bool Programacion { get; set; }
         public bool CienciaTecnologia { get; set; }
+        public bool Guardados { get; set; }
         public bool Viral { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
