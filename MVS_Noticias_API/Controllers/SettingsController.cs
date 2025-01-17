@@ -204,6 +204,9 @@ namespace MVS_Noticias_API.Controllers
                         MVSDeportesOrder = 17,
                         ProgramacionOrder = 18,
                         MasLeidasOrder = 19,
+                        GuardadosOrder = 20,
+                        MultimediaOrder = 21,
+                        UltimaHoraOrder = 22,
                         isDefaultOrder = true,
                     };
                     return Ok(settings);
@@ -260,7 +263,10 @@ namespace MVS_Noticias_API.Controllers
                     VideosOrder = customSettingsDto.VideosOrder,
                     MVSDeportesOrder = customSettingsDto.MVSDeportesOrder,
                     ProgramacionOrder = customSettingsDto.ProgramacionOrder,
-                    isDefaultOrder = true
+                    GuardadosOrder = customSettingsDto.GuardadosOrder,
+                    MultimediaOrder = customSettingsDto.MultimediaOrder,
+                    UltimaHoraOrder = customSettingsDto.UltimaHoraOrder,
+                    isDefaultOrder = false
                 };
 
                 await _dataContext.CustomSettings.AddAsync(customSettings);
@@ -315,6 +321,9 @@ namespace MVS_Noticias_API.Controllers
                 customSettings.MVSDeportesOrder = customSettingsDto.MVSDeportesOrder;
                 customSettings.ProgramacionOrder = customSettingsDto.ProgramacionOrder;
                 customSettings.MasLeidasOrder = customSettingsDto.MasLeidasOrder;
+                customSettings.GuardadosOrder = customSettingsDto.GuardadosOrder;
+                customSettings.MultimediaOrder = customSettingsDto.MultimediaOrder;
+                customSettings.UltimaHoraOrder = customSettingsDto.UltimaHoraOrder;
                 customSettings.isDefaultOrder = false;
 
                 await _dataContext.SaveChangesAsync();
@@ -400,7 +409,6 @@ namespace MVS_Noticias_API.Controllers
                         Programacion = true,
                         CienciaTecnologia = true,
                         Viral = true,
-                        Guardados = true,
                     };
                     return Ok(notificationSettings);
                 }
@@ -454,7 +462,6 @@ namespace MVS_Noticias_API.Controllers
                     Programacion = notificationsSettingsDto.Programacion,
                     CienciaTecnologia = notificationsSettingsDto.CienciaTecnologia,
                     Viral = notificationsSettingsDto.Viral,
-                    Guardados = notificationsSettingsDto.Guardados,
                     StartTime = notificationsSettingsDto.StartTime,
                     EndTime = notificationsSettingsDto.EndTime,
                     Keywords = notificationsSettingsDto.Keywords
@@ -512,7 +519,6 @@ namespace MVS_Noticias_API.Controllers
                 notificationSettings.StartTime = notificationsSettingsDto.StartTime;
                 notificationSettings.EndTime = notificationsSettingsDto.EndTime;
                 notificationSettings.Keywords = notificationsSettingsDto.Keywords;
-                notificationSettings.Guardados = notificationsSettingsDto.Guardados;
 
                 await _dataContext.SaveChangesAsync();
 

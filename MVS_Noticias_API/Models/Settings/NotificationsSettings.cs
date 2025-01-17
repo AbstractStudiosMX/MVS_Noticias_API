@@ -24,7 +24,6 @@ namespace MVS_Noticias_API.Models.Settings
         public bool Programacion { get; set; } = true;
         public bool CienciaTecnologia { get; set; } = true;
         public bool Viral { get; set; } = true;
-        public bool Guardados { get; set; } = true;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public string Keywords { get; set; } = string.Empty;

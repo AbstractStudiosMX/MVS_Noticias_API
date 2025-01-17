@@ -140,7 +140,6 @@ namespace MVS_Noticias_API.Controllers
             }
         }
 
-
         [HttpPut("notification")]
         public async Task<ActionResult<List<UserNotifications>>> PutUserNotifications(string userEmail, int newsId)
         {
