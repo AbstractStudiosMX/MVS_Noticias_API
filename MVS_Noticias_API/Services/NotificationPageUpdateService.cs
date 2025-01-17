@@ -58,10 +58,16 @@ namespace MVS_Noticias_API.Services
 
                 int idNota = newsData.notifications[0].data.idnota;
 
+                TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+                long unixDate = newsData.notifications[0].completed_at;
+                DateTime dateUtc = DateTimeOffset.FromUnixTimeSeconds(unixDate).UtcDateTime;
+                DateTime dateMexicoCity = TimeZoneInfo.ConvertTimeFromUtc(dateUtc, mexicoCityTimeZone);
+                string formattedDate = dateMexicoCity.ToString("dd/MM/yyyy HH:mm:ss");
+
                 var lastNotificationSent = await dataContext.LastNotificationSent.FirstOrDefaultAsync();
 
                 // Si la noticia es la misma nos salimos del flujo
-                if (lastNotificationSent!.NewsId == idNota)
+                if (lastNotificationSent!.NewsId == idNota && lastNotificationSent.RegisterDate == formattedDate)
                 {
                     _logger.LogInformation($"Notification with idNota {idNota} has already been processed. Skipping.");
                     return;
@@ -72,12 +78,6 @@ namespace MVS_Noticias_API.Services
                 var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
                 var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, idNota));
                 var newsDataDetail = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
-
-                TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
-                long unixDate = newsData.notifications[0].completed_at;
-                DateTime dateUtc = DateTimeOffset.FromUnixTimeSeconds(unixDate).UtcDateTime;
-                DateTime dateMexicoCity = TimeZoneInfo.ConvertTimeFromUtc(dateUtc, mexicoCityTimeZone);
-                string formattedDate = dateMexicoCity.ToString("dd/MM/yyyy HH:mm:ss");
 
                 // Filtrar usuarios sin configuración en NotificationSettings
                 var allUsers = await dataContext.Users.Select(ns => ns.Id).ToListAsync();
