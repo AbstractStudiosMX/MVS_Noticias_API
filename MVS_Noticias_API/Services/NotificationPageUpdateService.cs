@@ -216,6 +216,8 @@ namespace MVS_Noticias_API.Services
 
                 // Actualizamos la última notificación en la tabla de LastNotificationSent
                 lastNotificationSent.NewsId = idNota;
+                lastNotificationSent.RegisterDate = formattedDate;
+
                 await dataContext.SaveChangesAsync();
             }
             catch (Exception ex)
