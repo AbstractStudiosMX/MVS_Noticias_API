@@ -67,7 +67,7 @@ namespace MVS_Noticias_API.Services
                 var lastNotificationSent = await dataContext.LastNotificationSent.FirstOrDefaultAsync();
 
                 // Si la noticia es la misma nos salimos del flujo
-                if (lastNotificationSent!.NewsId == idNota && lastNotificationSent.RegisterDate == formattedDate)
+                if (lastNotificationSent!.RegisterDate == formattedDate)
                 {
                     _logger.LogInformation($"Notification with idNota {idNota} has already been processed. Skipping.");
                     return;
