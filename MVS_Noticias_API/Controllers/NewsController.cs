@@ -113,7 +113,7 @@ namespace MVS_Noticias_API.Controllers
                 {
                     foreach (var aside in relatedNewsNodes)
                     {
-                        aside.SetAttributeValue("style", "background-color: #f6f6f6; padding: 10px; margin: 10px 0; border-radius: 5px;");
+                        aside.SetAttributeValue("style", "background-color: #transparent; padding: 10px; margin: 10px 0; border-radius: 5px;");
 
 
                         var titleNode = aside.SelectSingleNode(".//strong[contains(@class, 'relacionadas-titulo-gral')]");
