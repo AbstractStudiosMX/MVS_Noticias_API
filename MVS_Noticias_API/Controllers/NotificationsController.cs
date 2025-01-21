@@ -211,156 +211,75 @@ namespace MVS_Noticias_API.Controllers
             }
         }
 
-        [HttpGet("notificationsOne")]
-        public async Task<ActionResult<List<Notification>>> GetUserNotifications()
-        {
-            _logger.LogInformation("Starting getting user notifications proccess.");
+        /*  [HttpGet("notificationsOne")]
+          public async Task<ActionResult<List<Notification>>> GetUserNotifications()
+          {
+              _logger.LogInformation("Starting getting user notifications proccess.");
 
-            try
-            {
-                using var httpClient = new HttpClient();
-                var apiOneSignal = _configuration.GetSection("AppSettings:OneSignalApiKey").Value;
-                var appIdOneSignal = _configuration.GetSection("AppSettings:OneSignalAppId").Value;
+              try
+              {
+                  using var httpClient = new HttpClient();
+                  using var scope = _serviceProvider.CreateScope();
+                  var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+                  var apiOneSignal = _configuration.GetSection("AppSettings:OneSignalApiKey").Value;
+                  var appIdOneSignal = _configuration.GetSection("AppSettings:OneSignalAppId").Value;
 
-                int limit = 1;
+                  int limit = 1;
 
-                httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {apiOneSignal}");
-                httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                  httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {apiOneSignal}");
+                  httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-                var responseOneSignal = await httpClient.GetStringAsync
-                    (string.Format($"https://onesignal.com/api/v1/notifications?limit={limit}&kind=1&app_id={appIdOneSignal}"));
-                var newsData = JsonConvert.DeserializeObject<dynamic>(responseOneSignal);
+                  var responseOneSignal = await httpClient.GetStringAsync
+                      (string.Format($"https://onesignal.com/api/v1/notifications?limit={limit}&kind=1&app_id={appIdOneSignal}"));
+                  var newsData = JsonConvert.DeserializeObject<dynamic>(responseOneSignal);
 
-                var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
-                var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, newsData.notifications[0].data.idnota));
-                var newsDataDetail = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
+                  int idNota = newsData.notifications[0].data.idnota;
 
-                // Filtrar usuarios sin configuración en NotificationSettings
-                var allUsers = await _dataContext.Users.Select(ns => ns.Id).ToListAsync();
-                var usersWithSettings = await _dataContext.NotificationsSettings.Where(ns => allUsers.Contains(ns.UserId)).ToListAsync();
-                var usersWithoutSettings = allUsers.Where(userId => !usersWithSettings.Any(ns => ns.UserId == userId)).ToList();
+                  TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+                  long unixDate = newsData.notifications[0].completed_at;
+                  DateTime dateUtc = DateTimeOffset.FromUnixTimeSeconds(unixDate).UtcDateTime;
+                  DateTime dateMexicoCity = TimeZoneInfo.ConvertTimeFromUtc(dateUtc, mexicoCityTimeZone);
+                  string formattedDate = dateMexicoCity.ToString("dd/MM/yyyy HH:mm:ss");
 
-                var savedNews = new List<UserNotifications>();
+                  var lastNotificationSent = await dataContext.LastNotificationSent.FirstOrDefaultAsync();
 
-                foreach (var notification in newsDataDetail.Noticias)
-                {
-                    string seccion = notification.seccion;
-                    string subseccion = notification.subseccion;
-                    string targetSection = !string.IsNullOrEmpty(subseccion) ? subseccion : seccion;
-                    string idSubseccion = notification.id_subseccion;
-                    string idSeccion = notification.id_seccion;
+                  // Si la noticia es la misma nos salimos del flujo
+                  if (lastNotificationSent!.NewsId == idNota && lastNotificationSent.RegisterDate == formattedDate)
+                  {
+                      _logger.LogInformation($"Notification with idNota {idNota} has already been processed. Skipping.");
+                     // return;
+                  }
 
-                    // Map section to enum
-                    if (!Enum.TryParse(targetSection.Replace(" ", ""), true, out NotificationSections sectionEnum))
-                    {
-                        _logger.LogWarning($"Section '{targetSection}' not found in enum.");
-                        continue;
-                    }
+                  string originalTitle = newsData.notifications[0].contents.en;
 
-                    foreach (var userId in usersWithoutSettings)
-                    {
-                        var savedNew = new UserNotifications
-                        {
-                            UserId = userId,
-                            NewsId = notification.id_noticia,
-                            Title = notification.titulo,
-                            Content = notification.descripcion,
-                            Section = subseccion != ""
-                                        ? subseccion
-                                        : seccion,
-                            RegisterDate = notification.fecha,
-                            SectionId = idSubseccion != ""
-                                        ? idSubseccion
-                                        : idSeccion
-                        };
-                        savedNews.Add(savedNew);
-                    }
+                  return Ok();
+              }
+              catch (Exception ex)
+              {
+                  _logger.LogError("Error getting user notifications: " + ex.Message);
+                  return BadRequest("Error getting user notifications: " + ex.Message);
+              }
 
-                    // Filtrar usuarios con preferencias activas
-                    var targetUsersWithSettings = usersWithSettings
-                        .Where(ns =>
-                        {
-                            var property = ns.GetType().GetProperty(sectionEnum.ToString());
-                            if (property == null) return false; // Si la propiedad no existe, no se incluye
-                            var value = property.GetValue(ns) as bool?;
-                            return value == true; // Solo incluye configuraciones activas
-                        })
-                        .ToList();
-
-                    // Lista de usuarios que no tienen preferencias de notificaciones
-                    foreach (var user in targetUsersWithSettings)
-                    {
-                        var savedNew = new UserNotifications
-                        {
-                            UserId = user.UserId,
-                            NewsId = notification.id_noticia,
-                            Title = notification.titulo,
-                            Content = notification.descripcion,
-                            Section = subseccion != ""
-                                        ? subseccion
-                                        : seccion,
-                            RegisterDate = notification.fecha,
-                            SectionId = idSubseccion != "0"
-                                        ? idSubseccion
-                                        : idSeccion
-                        };
-                        savedNews.Add(savedNew);
-                    }
-                }
-
-                // Inserciones con validación de duplicados y transacción
-                const int batchSize = 100; // Tamaño del lote
-
-                if (savedNews.Any())
-                {
-                    var uniqueNews = new List<UserNotifications>();
-
-                    foreach (var news in savedNews)
-                    {
-                        bool exists = await _dataContext.Notifications
-                            .AnyAsync(n => n.UserId == news.UserId && n.NewsId == news.NewsId);
-
-                        if (!exists)
-                        {
-                            uniqueNews.Add(news);
-                        }
-                    }
-
-                    var executionStrategy = _dataContext.Database.CreateExecutionStrategy();
-
-                    await executionStrategy.ExecuteAsync(async () =>
-                    {
-                        using var transaction = await _dataContext.Database.BeginTransactionAsync();
-                        try
-                        {
-                            // Inserciones en lotes
-                            for (int i = 0; i < uniqueNews.Count; i += batchSize)
-                            {
-                                var batch = uniqueNews.Skip(i).Take(batchSize).ToList();
-                                await _dataContext.Notifications.AddRangeAsync(batch);
-                                await _dataContext.SaveChangesAsync();
-                            }
-
-                            await transaction.CommitAsync();
-                            _logger.LogInformation($"Saved {uniqueNews.Count} unique notifications to the database.");
-                        }
-                        catch (Exception ex)
-                        {
-                            await transaction.RollbackAsync();
-                            _logger.LogError("Error while saving notifications: " + ex.Message);
-                            throw;
-                        }
-                    });
-                }
-
-                return Ok(savedNews);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error getting user notifications: " + ex.Message);
-                return BadRequest("Error getting user notifications: " + ex.Message);
-            }
-        }
+          public enum NotificationSections
+          {
+              Tendencias,
+              Entrevistas,
+              Deportes,
+              Nacional,
+              Videos,
+              CDMX,
+              Entretenimiento,
+              Opinion,
+              Economia,
+              Estados,
+              Mundo,
+              Mascotas,
+              SaludBienestar,
+              Policiaca,
+              Programacion,
+              CienciaTecnologia,
+              Viral
+          }*/
 
         private string ConvertToISO(string date)
         {
@@ -369,26 +288,5 @@ namespace MVS_Noticias_API.Controllers
             return parsedDate.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
         }
 
-
-        public enum NotificationSections
-        {
-            Tendencias,
-            Entrevistas,
-            Deportes,
-            Nacional,
-            Videos,
-            CDMX,
-            Entretenimiento,
-            Opinion,
-            Economia,
-            Estados,
-            Mundo,
-            Mascotas,
-            SaludBienestar,
-            Policiaca,
-            Programacion,
-            CienciaTecnologia,
-            Viral
-        }
     }
 }
