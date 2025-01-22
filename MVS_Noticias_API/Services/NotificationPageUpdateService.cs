@@ -70,33 +70,32 @@ namespace MVS_Noticias_API.Services
                 if(lastNotificationSent != null)
                 {
                     //Solo si la noticia es diferente a la guardada en la bd se hace el proces
-                    if (lastNotificationSent.Title != originalTitle && lastNotificationSent.RegisterDate != formattedDate)
+                    if (lastNotificationSent.Title != originalTitle || lastNotificationSent.RegisterDate != formattedDate || lastNotificationSent.NewsId != idNote)
                     {
                 
                         var apiEditor80 = _configuration.GetSection("AppSettings:Editor80Api").Value;
                         var responseNewsMVS = await httpClient.GetStringAsync(string.Format("{0}noticias.asp?id_noticia={1}&contenido=si", apiEditor80, idNote));
                         var newsDataDetail = JsonConvert.DeserializeObject<dynamic>(responseNewsMVS);
-
-                        // Filtrar usuarios sin configuración en NotificationSettings
-                        var allUsers = await dataContext.Users.Select(ns => ns.Id).ToListAsync();
-                        var usersWithSettings = await dataContext.NotificationsSettings.Where(ns => allUsers.Contains(ns.UserId)).ToListAsync();
-                        var usersWithoutSettings = allUsers.Where(userId => !usersWithSettings.Any(ns => ns.UserId == userId)).ToList();
-
-                        var savedNews = new List<UserNotifications>();
-
-                        foreach (var notification in newsDataDetail.Noticias)
+                        
+                        if (newsDataDetail != null)
                         {
-                            string seccion = notification.seccion;
-                            string subseccion = notification.subseccion;
+                            // Filtrar usuarios sin configuración en NotificationSettings
+                            var allUsers = await dataContext.Users.Select(ns => ns.Id).ToListAsync();
+                            var usersWithSettings = await dataContext.NotificationsSettings.Where(ns => allUsers.Contains(ns.UserId)).ToListAsync();
+                            var usersWithoutSettings = allUsers.Where(userId => !usersWithSettings.Any(ns => ns.UserId == userId)).ToList();
+
+                            var savedNews = new List<UserNotifications>();
+
+                            string seccion = newsDataDetail.Noticias[0].seccion;
+                            string subseccion = newsDataDetail.Noticias[0].subseccion;
                             string targetSection = !string.IsNullOrEmpty(subseccion) ? subseccion : seccion;
-                            string idSubseccion = notification.id_subseccion;
-                            string idSeccion = notification.id_seccion;
+                            string idSubseccion = newsDataDetail.Noticias[0].id_subseccion;
+                            string idSeccion = newsDataDetail.Noticias[0].id_seccion;
 
                             // Map section to enum
                             if (!Enum.TryParse(targetSection.Replace(" ", ""), true, out NotificationSections sectionEnum))
                             {
                                 _logger.LogWarning($"Section '{targetSection}' not found in enum.");
-                                continue;
                             }
 
                             foreach (var userId in usersWithoutSettings)
@@ -104,9 +103,9 @@ namespace MVS_Noticias_API.Services
                                 var savedNew = new UserNotifications
                                 {
                                     UserId = userId,
-                                    NewsId = notification.id_noticia,
+                                    NewsId = newsDataDetail.Noticias[0].id_noticia,
                                     Title = originalTitle,
-                                    Content = notification.titulo,
+                                    Content = newsDataDetail.Noticias[0].titulo,
                                     Section = subseccion != ""
                                                 ? subseccion
                                                 : seccion,
@@ -135,9 +134,9 @@ namespace MVS_Noticias_API.Services
                                 var savedNew = new UserNotifications
                                 {
                                     UserId = user.UserId,
-                                    NewsId = notification.id_noticia,
+                                    NewsId = newsDataDetail.Noticias[0].id_noticia,
                                     Title = originalTitle,
-                                    Content = notification.titulo,
+                                    Content = newsDataDetail.Noticias[0].titulo,
                                     Section = subseccion != ""
                                                 ? subseccion
                                                 : seccion,
@@ -148,16 +147,16 @@ namespace MVS_Noticias_API.Services
                                 };
                                 savedNews.Add(savedNew);
                             }
+
+                            await dataContext.Notifications.AddRangeAsync(savedNews);
+
+                            // Actualizamos la última notificación en la tabla de LastNotificationSent
+                            lastNotificationSent.NewsId = idNote;
+                            lastNotificationSent.RegisterDate = formattedDate;
+                            lastNotificationSent.Title = originalTitle;
+
+                            await dataContext.SaveChangesAsync();
                         }
-
-                         await dataContext.Notifications.AddRangeAsync(savedNews);
-
-                        // Actualizamos la última notificación en la tabla de LastNotificationSent
-                        lastNotificationSent.NewsId = idNote;
-                        lastNotificationSent.RegisterDate = formattedDate;
-                        lastNotificationSent.Title = originalTitle;
-
-                        await dataContext.SaveChangesAsync();
 
                     }
                 }
