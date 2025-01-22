@@ -9,7 +9,7 @@ namespace MVS_Noticias_API.Models.Settings
         public int UserId { get; set; }
         public bool Tendencias { get; set; } = true;
         public bool Entrevistas { get; set; } = true;
-        public bool Deportes { get; set; } = true;
+        public bool MVSDeportes { get; set; } = true;
         public bool Nacional { get; set; } = true;
         public bool Videos { get; set; } = true;
         public bool CDMX { get; set; } = true;

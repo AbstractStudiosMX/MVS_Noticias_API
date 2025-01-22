@@ -387,6 +387,9 @@ namespace MVS_Noticias_API.Controllers
 
                 var notificationSettings = await _dataContext.NotificationsSettings.FirstOrDefaultAsync(x => x.UserId == user.Id);
 
+                TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+                DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, mexicoCityTimeZone);
+
                 if (notificationSettings == null)
                 {
                     notificationSettings = new NotificationsSettings
@@ -394,7 +397,7 @@ namespace MVS_Noticias_API.Controllers
                         UserId = user.Id,
                         Tendencias = true,
                         Entrevistas = true,
-                        Deportes = true,
+                        MVSDeportes = true,
                         Nacional = true,
                         Videos = true,
                         CDMX = true,
@@ -409,6 +412,8 @@ namespace MVS_Noticias_API.Controllers
                         Programacion = true,
                         CienciaTecnologia = true,
                         Viral = true,
+                        StartTime = new DateTime(now.Year, now.Month, now.Day, 8, 0, 0),
+                        EndTime = new DateTime(now.Year, now.Month, now.Day, 18, 0, 0),
                     };
                     return Ok(notificationSettings);
                 }
@@ -447,7 +452,7 @@ namespace MVS_Noticias_API.Controllers
                     UserId = user.Id,
                     Tendencias = notificationsSettingsDto.Tendencias,
                     Entrevistas = notificationsSettingsDto.Entrevistas,
-                    Deportes = notificationsSettingsDto.MVSDeportes,
+                    MVSDeportes = notificationsSettingsDto.MVSDeportes,
                     Nacional = notificationsSettingsDto.Nacional,
                     Videos = notificationsSettingsDto.Videos,
                     CDMX = notificationsSettingsDto.CDMX,
@@ -501,7 +506,7 @@ namespace MVS_Noticias_API.Controllers
 
                 notificationSettings.Tendencias = notificationsSettingsDto.Tendencias;
                 notificationSettings.Entrevistas = notificationsSettingsDto.Entrevistas;
-                notificationSettings.Deportes = notificationsSettingsDto.MVSDeportes;
+                notificationSettings.MVSDeportes = notificationsSettingsDto.MVSDeportes;
                 notificationSettings.Nacional = notificationsSettingsDto.Nacional;
                 notificationSettings.Videos = notificationsSettingsDto.Videos;
                 notificationSettings.CDMX = notificationsSettingsDto.CDMX;

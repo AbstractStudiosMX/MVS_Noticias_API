@@ -60,7 +60,7 @@ namespace MVS_Noticias_API.Controllers
                 },
                 new Section { Id = 756, Name = "Opinión" },
                 new Section { Id = 758, Name = "Entrevistas" },
-                new Section { Id = 760, Name = "Deportes" },
+                new Section { Id = 760, Name = "MVS Deportes" },
                 new Section { Id = 788999, Name = "Programación" },
                 new Section { Id = 788100, Name = "Guardados" },
                 new Section { Id = 788101, Name = "Más leídas" }
