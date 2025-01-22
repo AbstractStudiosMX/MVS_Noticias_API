@@ -23,6 +23,31 @@ namespace MVS_Noticias_API.Controllers
             _logger = logger;
         }
 
+        [HttpGet("allSavedNews")]
+        public async Task<ActionResult<List<SavedNews>>> GetAllSavedNews(string userEmail)
+        {
+            _logger.LogInformation("Starting getting save news proccess.");
+
+            try
+            {
+                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
+
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                var savedNews = await _dataContext.SavedNews.Where(x => x.UserId == user.Id).ToListAsync();
+
+                return Ok(savedNews);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error getting all saved news: " + ex.Message);
+                return BadRequest("Error getting all saved news: " + ex.Message);
+            }
+        }
+
         [HttpGet("savedNews")]
         public async Task<ActionResult<List<SavedNews>>> GetSavedNews(string userEmail, int pageNumber = 1, int pageSize = 10)
         {
@@ -186,6 +211,31 @@ namespace MVS_Noticias_API.Controllers
             {
                 _logger.LogError("Error deleting saved news: " + ex.Message);
                 return BadRequest("Error deleting saved news: " + ex.Message);
+            }
+        }
+
+        [HttpGet("allSavedPodcast")]
+        public async Task<ActionResult<List<SavedNews>>> GetAllSavedPodcast(string userEmail)
+        {
+            _logger.LogInformation("Starting getting save news proccess.");
+
+            try
+            {
+                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userEmail);
+
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                var savedPodcasts = await _dataContext.SavedPodcasts.Where(x => x.UserId == user.Id).ToListAsync();
+
+                return Ok(savedPodcasts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error getting all saved podcasts: " + ex.Message);
+                return BadRequest("Error getting all saved podcasts: " + ex.Message);
             }
         }
 
