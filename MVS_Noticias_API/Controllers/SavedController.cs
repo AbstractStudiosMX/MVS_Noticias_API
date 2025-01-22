@@ -261,20 +261,21 @@ namespace MVS_Noticias_API.Controllers
                     .Take(pageSize)
                     .ToListAsync();
 
-                var savedPodcasts = rawSavedPodcasts.Select(x => new
-                {   
-                    x.Index,
-                    x.Id,
-                    x.UserId,
-                    x.ProgramId,    
-                    x.ProgramName,
-                    x.Title,
-                    x.Description,
-                    x.PublishedDurationSeconds,
-                    x.ImagePublicUrl,
-                    x.AudioPublicUrl
-                });
-
+                // Asigna un índice único al proyectar los datos
+                var savedPodcasts = rawSavedPodcasts
+                    .Select((x, index) => new
+                    {
+                        Index = (pageNumber - 1) * pageSize + index + 1, // Genera un índice único
+                        x.Id,
+                        x.UserId,
+                        x.ProgramId,
+                        x.ProgramName,
+                        x.Title,
+                        x.Description,
+                        x.PublishedDurationSeconds,
+                        x.ImagePublicUrl,
+                        x.AudioPublicUrl
+                    });
 
                 return Ok(savedPodcasts);
             }
