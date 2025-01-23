@@ -304,6 +304,7 @@ namespace MVS_Noticias_API.Controllers
                 customSettings.NacionalOrder = customSettingsDto.NacionalOrder;
                 customSettings.CDMXOrder = customSettingsDto.CDMXOrder;
                 customSettings.EstadosOrder = customSettingsDto.EstadosOrder;
+                customSettings.PoliciacaOrder = customSettingsDto.PoliciacaOrder;
                 customSettings.ProgramacionOrder = customSettingsDto.ProgramacionOrder;
                 customSettings.NuevoLeonOrder = customSettingsDto.NuevoLeonOrder;
                 customSettings.MundoOrder = customSettingsDto.MundoOrder;
@@ -324,6 +325,8 @@ namespace MVS_Noticias_API.Controllers
                 customSettings.GuardadosOrder = customSettingsDto.GuardadosOrder;
                 customSettings.MultimediaOrder = customSettingsDto.MultimediaOrder;
                 customSettings.UltimaHoraOrder = customSettingsDto.UltimaHoraOrder;
+                customSettings.ViralOrder = customSettingsDto.ViralOrder;
+
                 customSettings.isDefaultOrder = false;
 
                 await _dataContext.SaveChangesAsync();

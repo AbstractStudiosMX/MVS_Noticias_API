@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using MVS_Noticias_API.Data;
 using MVS_Noticias_API.DataService;
 using MVS_Noticias_API.Models.Domain;
+using MVS_Noticias_API.Models.Settings;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -72,6 +73,38 @@ namespace MVS_Noticias_API.Controllers
                 _dataContext.Users.Add(user);
                 await _dataContext.SaveChangesAsync();
 
+                var userNew = await _dataContext.Users.Where(x => x.FirebaseUid == userRecord.Uid).FirstOrDefaultAsync();
+
+                TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+                DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, mexicoCityTimeZone);
+
+                var notificationSettings = new NotificationsSettings
+                {
+                    UserId = userNew.Id,
+                    Tendencias = true,
+                    Entrevistas = true,
+                    MVSDeportes = true,
+                    Nacional = true,
+                    Videos = true,
+                    CDMX = true,
+                    Entretenimiento = true,
+                    Opinion = true,
+                    Economia = true,
+                    Estados = true,
+                    Mundo = true,
+                    Mascotas = true,
+                    SaludBienestar = true,
+                    Policiaca = true,
+                    Programacion = true,
+                    CienciaTecnologia = true,
+                    Viral = true,
+                    StartTime = new DateTime(now.Year, now.Month, now.Day, 8, 0, 0),
+                    EndTime = new DateTime(now.Year, now.Month, now.Day, 18, 0, 0),
+                };
+
+                await _dataContext.NotificationsSettings.AddAsync(notificationSettings);
+                await _dataContext.SaveChangesAsync();
+
                 return Ok(user);
             }
             catch (Exception e)
@@ -109,6 +142,38 @@ namespace MVS_Noticias_API.Controllers
                 };
 
                 _dataContext.Users.Add(user);
+                await _dataContext.SaveChangesAsync();
+
+                var userNew = await _dataContext.Users.Where(x => x.FirebaseUid == uid).FirstOrDefaultAsync();
+
+                TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+                DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, mexicoCityTimeZone);
+
+                var notificationSettings = new NotificationsSettings
+                {
+                    UserId = userNew.Id,
+                    Tendencias = true,
+                    Entrevistas = true,
+                    MVSDeportes = true,
+                    Nacional = true,
+                    Videos = true,
+                    CDMX = true,
+                    Entretenimiento = true,
+                    Opinion = true,
+                    Economia = true,
+                    Estados = true,
+                    Mundo = true,
+                    Mascotas = true,
+                    SaludBienestar = true,
+                    Policiaca = true,
+                    Programacion = true,
+                    CienciaTecnologia = true,
+                    Viral = true,
+                    StartTime = new DateTime(now.Year, now.Month, now.Day, 8, 0, 0),
+                    EndTime = new DateTime(now.Year, now.Month, now.Day, 18, 0, 0),
+                };
+
+                await _dataContext.NotificationsSettings.AddAsync(notificationSettings);
                 await _dataContext.SaveChangesAsync();
 
                 return Ok(new { Message = "User registered successfully", Uid = uid });
