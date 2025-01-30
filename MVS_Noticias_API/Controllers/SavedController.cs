@@ -24,9 +24,9 @@ namespace MVS_Noticias_API.Controllers
         }
 
         [HttpGet("allSavedNews")]
-        public async Task<ActionResult<List<SavedNews>>> GetAllSavedNews(string userEmail)
+        public async Task<ActionResult<List<object>>> GetAllSavedNews(string userEmail)
         {
-            _logger.LogInformation("Starting getting save news proccess.");
+            _logger.LogInformation("Starting getting saved news process.");
 
             try
             {
@@ -37,9 +37,48 @@ namespace MVS_Noticias_API.Controllers
                     return NotFound("User not found.");
                 }
 
-                var savedNews = await _dataContext.SavedNews.Where(x => x.UserId == user.Id).ToListAsync();
+                var savedNews = await _dataContext.SavedNews
+                    .Where(x => x.UserId == user.Id)
+                    .ToListAsync();
 
-                return Ok(savedNews);
+                // Proyectar la lista asignando valores incrementales a Number
+                var response = savedNews
+                    .Select((news, index) => new
+                    {
+                        news.Id,
+                        news.UserId,
+                        news.IdNews,
+                        news.Title,
+                        news.Description,
+                        news.Date,
+                        news.Section,
+                        news.SubSection,
+                        news.IdSection,
+                        news.IdSubSection,
+                        news.Url,
+                        news.Slug,
+                        news.Photo,
+                        news.PhotoMobile,
+                        news.PhotoCredits,
+                        news.PhotoDescription,
+                        news.Author,
+                        news.IdAuthor,
+                        news.Creator,
+                        news.IdCreator,
+                        news.Content,
+                        news.IsVideo,
+                        news.VideoUrl,
+                        news.IsSound,
+                        news.SoundUrl,
+                        news.Type,
+                        news.Tags,
+                        news.HiddenTags,
+                        news.NewsQuantity,
+                        Number = index + 1 // Asignar número secuencial desde 1
+                    })
+                    .ToList();
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -47,6 +86,7 @@ namespace MVS_Noticias_API.Controllers
                 return BadRequest("Error getting all saved news: " + ex.Message);
             }
         }
+
 
         [HttpGet("savedNews")]
         public async Task<ActionResult<List<SavedNews>>> GetSavedNews(string userEmail, int pageNumber = 1, int pageSize = 10)
