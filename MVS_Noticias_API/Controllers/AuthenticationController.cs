@@ -11,6 +11,7 @@ using MVS_Noticias_API.Models.Settings;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
 namespace MVS_Noticias_API.Controllers
 {
@@ -43,6 +44,13 @@ namespace MVS_Noticias_API.Controllers
 
             if (isRegistred != null) 
             {
+
+
+                if (isRegistred.Username == request.UserName)
+                {
+                    return BadRequest("Username already taken.");
+                }
+
                 return BadRequest("User already registered.");
             }
 
@@ -125,12 +133,17 @@ namespace MVS_Noticias_API.Controllers
                 var uid = verifiedToken.Uid;
                 var email = userEmail;
 
-                var isRegistred = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == email && u.Provider == provider);
+                var isRegistered = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == email && u.Provider == provider);
 
-                if (isRegistred != null)
+                if (isRegistered != null)
                 {
                     return BadRequest("User already registered.");
                 }
+
+                string displayName = verifiedToken.Claims.ContainsKey("name") ? verifiedToken.Claims["name"].ToString() : "User";
+
+                string sanitizedUsername = RemoveSpecialCharacters(displayName).Replace(" ", "");
+                string username = await GenerateUniqueUsername(sanitizedUsername);
 
                 var user = new User
                 {
@@ -138,7 +151,8 @@ namespace MVS_Noticias_API.Controllers
                     RegisterDate = DateTime.Now,
                     IsEnabled = true,
                     FirebaseUid = uid,
-                    Provider = provider
+                    Provider = provider,
+                    Username = username
                 };
 
                 _dataContext.Users.Add(user);
@@ -176,31 +190,114 @@ namespace MVS_Noticias_API.Controllers
                 await _dataContext.NotificationsSettings.AddAsync(notificationSettings);
                 await _dataContext.SaveChangesAsync();
 
-                return Ok(new { Message = "User registered successfully", Uid = uid });
+                return Ok(new { Message = "User registered successfully", Uid = uid, Username = username });
             }
-
             catch (Exception ex)
             {
                 return BadRequest($"Error registering user: {ex.Message}");
             }
         }
 
+        private async Task<string> GenerateUniqueUsername(string baseUsername)
+        {
+            string username = baseUsername;
+            Random random = new Random();
+
+            int attempts = 0;
+            while (await _dataContext.Users.AnyAsync(u => u.Username == username))
+            {
+                attempts++;
+                username = $"{baseUsername}{random.Next(100, 999)}";
+
+                if (attempts > 10)
+                {
+                    username = $"{baseUsername}{Guid.NewGuid().ToString("N").Substring(0, 6)}";
+                    break;
+                }
+            }
+
+            return username;
+        }
+
+        private string RemoveSpecialCharacters(string input)
+        {
+            return Regex.Replace(input, @"[^a-zA-Z0-9]", ""); // Solo deja letras y números
+        }
+
         [HttpPost("login")]
-        public async Task<ActionResult<string>> SocialLogin(string idToken)
+        public async Task<ActionResult<string>> SocialLogin(string idToken, string userEmail, string provider)
         {
             try
             {
                 var verifiedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
-
                 var uid = verifiedToken.Uid;
+                var email = userEmail;
 
-                return Ok(new { Message = "Login successful", Uid = uid });
+                var user = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == email && u.Provider == provider);
+
+                if (user != null)
+                {
+                    return Ok(new { Message = "Login successful", Uid = user.FirebaseUid, Username = user.Username });
+                }
+
+                // Si el usuario no está registrado, proceder con el registro automático
+                string displayName = verifiedToken.Claims.ContainsKey("name") ? verifiedToken.Claims["name"].ToString() : "User";
+                string sanitizedUsername = RemoveSpecialCharacters(displayName).Replace(" ", "");
+                string username = await GenerateUniqueUsername(sanitizedUsername);
+
+                var newUser = new User
+                {
+                    Email = email,
+                    RegisterDate = DateTime.Now,
+                    IsEnabled = true,
+                    FirebaseUid = uid,
+                    Provider = provider,
+                    Username = username
+                };
+
+                _dataContext.Users.Add(newUser);
+                await _dataContext.SaveChangesAsync();
+
+                var userNew = await _dataContext.Users.FirstOrDefaultAsync(x => x.FirebaseUid == uid);
+
+                TimeZoneInfo mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+                DateTime now = TimeZoneInfo.ConvertTime(DateTime.UtcNow, mexicoCityTimeZone);
+
+                var notificationSettings = new NotificationsSettings
+                {
+                    UserId = userNew.Id,
+                    Tendencias = true,
+                    Entrevistas = true,
+                    MVSDeportes = true,
+                    Nacional = true,
+                    Videos = true,
+                    CDMX = true,
+                    Entretenimiento = true,
+                    Opinion = true,
+                    Economia = true,
+                    Estados = true,
+                    Mundo = true,
+                    Mascotas = true,
+                    SaludBienestar = true,
+                    Policiaca = true,
+                    Programacion = true,
+                    CienciaTecnologia = true,
+                    Viral = true,
+                    StartTime = new DateTime(now.Year, now.Month, now.Day, 8, 0, 0),
+                    EndTime = new DateTime(now.Year, now.Month, now.Day, 18, 0, 0),
+                };
+
+                await _dataContext.NotificationsSettings.AddAsync(notificationSettings);
+                await _dataContext.SaveChangesAsync();
+
+                return Ok(new { Message = "User registered and logged in successfully", Uid = uid, Username = username });
             }
             catch (Exception ex)
             {
                 return Unauthorized($"Invalid token: {ex.Message}");
             }
         }
+
 
         /* [HttpPost("login")]
          public async Task<ActionResult<User>> Login(UserDto request)
