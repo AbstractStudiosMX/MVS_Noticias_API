@@ -51,7 +51,7 @@ namespace MVS_Noticias_API.Controllers
                     return BadRequest("Username already taken.");
                 }
 
-                return BadRequest("User already registered.");
+                 return BadRequest("User already registered.");
             }
 
             try
@@ -75,7 +75,7 @@ namespace MVS_Noticias_API.Controllers
                     RegisterDate = DateTime.Now,
                     IsEnabled = true,
                     FirebaseUid = userRecord.Uid,
-                    Provider = "Email/Password"
+                    Provider = "password"
                 };
 
                 _dataContext.Users.Add(user);
@@ -202,19 +202,8 @@ namespace MVS_Noticias_API.Controllers
         {
             string username = baseUsername;
             Random random = new Random();
-
-            int attempts = 0;
-            while (await _dataContext.Users.AnyAsync(u => u.Username == username))
-            {
-                attempts++;
-                username = $"{baseUsername}{random.Next(100, 999)}";
-
-                if (attempts > 10)
-                {
-                    username = $"{baseUsername}{Guid.NewGuid().ToString("N").Substring(0, 6)}";
-                    break;
-                }
-            }
+           
+            username = baseUsername + random.Next(0, 999);
 
             return username;
         }
@@ -297,6 +286,30 @@ namespace MVS_Noticias_API.Controllers
                 return Unauthorized($"Invalid token: {ex.Message}");
             }
         }
+
+        [HttpGet("emailFromUser")]
+        public async Task<ActionResult<List<object>>> GetEmailFromUser(string userName)
+        {
+            _logger.LogInformation("Starting getting email from user.");
+
+            try
+            {
+                var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Username == userName);
+
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+
+                return Ok(user.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error getting all saved news: " + ex.Message);
+                return BadRequest("Error getting all saved news: " + ex.Message);
+            }
+        }
+
 
 
         /* [HttpPost("login")]
