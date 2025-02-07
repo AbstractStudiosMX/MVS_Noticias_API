@@ -114,5 +114,61 @@ namespace MVS_Noticias_API.Controllers
                 return BadRequest("Error getting podcast audios: " + ex.Message);
             }
         }
+
+        [HttpGet("randomProgram")]
+        public async Task<ActionResult<ProgramPodcast>> GetRandomProgram()
+        {
+            _logger.LogInformation("Starting get random podcast program.");
+
+            try
+            {
+                using var httpClient = new HttpClient();
+
+                var apiOmnistudio = _configuration.GetSection("AppSettings:OmnistudioApi").Value;
+                var keyOmnistudio = _configuration.GetSection("AppSettings:OmnistudioKey").Value;
+
+                var responseOmnistudio = await httpClient.GetStringAsync(string.Format("{0}network/{1}/{2}/{3}", apiOmnistudio, keyOmnistudio, 50, 1));
+                var podcastData = JsonConvert.DeserializeObject<List<dynamic>>(responseOmnistudio);
+
+                var allowedIndices = new List<int> { 23, 20, 9, 18, 19, 22, 6, 17, 21, 10, 15, 13, 30, 29, 27, 26, 16, 14, 24, 12, 11, 25, 4, 5, 7, 8 };
+
+                var programList = new List<ProgramPodcast>();
+
+                foreach (var index in allowedIndices)
+                {
+                    if (index >= 0 && index < podcastData.Count)
+                    {
+                        var program = podcastData[index];
+                        var programInfo = new ProgramPodcast
+                        {
+                            Index = index,
+                            Id = program.Id,
+                            NetworkId = program.NetworkId,
+                            Name = program.Name,
+                            Slug = program.Slug,
+                            HasImage = program.HasImage,
+                            ImagePublicUrl = program.ImagePublicUrl,
+                            Description = program.Description,
+                        };
+                        programList.Add(programInfo);
+                    }
+                }
+
+                if (!programList.Any())
+                {
+                    return NotFound("No podcast programs found.");
+                }
+
+                var random = new Random();
+                var randomProgram = programList[random.Next(programList.Count)];
+
+                return Ok(randomProgram);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error getting random podcast program: " + ex.Message);
+                return BadRequest("Error getting random podcast program: " + ex.Message);
+            }
+        }
     }
 }
