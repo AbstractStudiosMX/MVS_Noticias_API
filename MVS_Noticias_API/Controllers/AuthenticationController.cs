@@ -37,21 +37,21 @@ namespace MVS_Noticias_API.Controllers
 
             if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
             {
-                return BadRequest("Email and Password are required.");
+                return BadRequest("Email y contraseña son requeridos.");
             }
 
-            var isRegistred = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var isRegistredEmail = await _dataContext.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
-            if (isRegistred != null) 
+            var isRegistredUserName = await _dataContext.Users.FirstOrDefaultAsync(u => u.Username == request.UserName);
+
+            if (isRegistredEmail != null) 
             {
+                    return BadRequest("El Email ya está registrado.");
+            }
 
-
-                if (isRegistred.Username == request.UserName)
-                {
-                    return BadRequest("Username already taken.");
-                }
-
-                 return BadRequest("User already registered.");
+            if (isRegistredUserName != null)
+            {
+                    return BadRequest("El usuario ya está en uso..");
             }
 
             try
@@ -137,7 +137,7 @@ namespace MVS_Noticias_API.Controllers
 
                 if (isRegistered != null)
                 {
-                    return BadRequest("User already registered.");
+                    return BadRequest("El usuario ya está registrado.");
                 }
 
                 string displayName = verifiedToken.Claims.ContainsKey("name") ? verifiedToken.Claims["name"].ToString() : "User";

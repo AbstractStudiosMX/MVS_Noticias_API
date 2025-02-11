@@ -603,9 +603,16 @@ namespace MVS_Noticias_API.Controllers
             try
             {
                 var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userData.email);
+                var username = await _dataContext.Users.FirstOrDefaultAsync(x => x.Username == userData.Username);
+
                 if (user == null)
                 {
-                    return NotFound("User not found.");
+                    return NotFound("Usuario no encontrado.");
+                }
+
+                if (username != null)
+                {
+                    return NotFound("El usuario ya está en uso.");
                 }
 
                 user.FullName = userData.FullName;
