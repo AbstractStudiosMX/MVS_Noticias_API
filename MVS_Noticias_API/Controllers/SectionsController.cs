@@ -72,27 +72,34 @@ namespace MVS_Noticias_API.Controllers
             }
             else
             {
-                var flatList = new List<dynamic>();
+                var predefinedFlatList = new List<object>
+            {
+                new { id = 111111, name = "Última hora" },
+                new { id = 758, name = "Entrevistas" },
+                new { id = 759, name = "Video" },
+                new { id = 751, name = "Nacional" },
+                new { id = 762, name = "Cdmx" },
+                new { id = 763, name = "Estados" },
+                new { id = 1779, name = "Nuevo León" },
+                new { id = 764, name = "Policiaca" },
+                new { id = 752, name = "Mundo" },
+                new { id = 655144, name = "Podcast" },
+                new { id = 753, name = "Economía" },
+                new { id = 788101, name = "Más leídas" },
+                new { id = 754, name = "Entretenimiento" },
+                new { id = 755, name = "Tendencias" },
+                new { id = 766, name = "Viral" },
+                new { id = 767, name = "Salud y Bienestar" },
+                new { id = 768, name = "Ciencia y Tecnología" },
+                new { id = 769, name = "Mascotas" },
+                new { id = 756, name = "Opinión" },
+                new { id = 760, name = "MVS Deportes" },
+                new { id = 788999, name = "Programación" },
+                new { id = 788100, name = "Guardados" },
+                new { id = 758451, name = "Multimedia" }
+            };
 
-                
-                foreach (var section in sections)
-                {
-                    
-                    if (!flatList.Any(f => f.Id == section.Id))
-                    {
-                        flatList.Add(new { section.Id, Name = section.Name });
-                    }
-
-                    foreach (var subsection in section.Subsections)
-                    {
-                        if (!flatList.Any(f => f.Id == subsection.Id))
-                        {
-                            flatList.Add(new { subsection.Id, Name = subsection.Name });
-                        }
-                    }
-                }
-
-                return Ok(flatList);
+                return Ok(predefinedFlatList);
             }
         }
 
