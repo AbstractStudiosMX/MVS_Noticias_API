@@ -184,29 +184,27 @@ namespace MVS_Noticias_API.Controllers
                 {
                     var settings = new CustomSettings
                     {
-                        UltimaHoraOrder = 0,
-                        NacionalOrder = 1,
-                        CDMXOrder = 2,
-                        EstadosOrder = 3,
-                        PoliciacaOrder = 4,
-                        NuevoLeonOrder = 5,
-                        MundoOrder = 6,
-                        PodcastOrder = 7,
-                        EconomiaOrder = 8,
-                        EntretenimientoOrder = 9,
-                        TendenciasOrder = 10,
-                        ViralOrder = 11,
-                        SaludBienestarOrder = 12,
-                        CienciaTecnologiaOrder = 13,
-                        MascotasOrder = 14,
-                        OpinionOrder = 15,
-                        EntrevistasOrder = 16,
-                        VideosOrder = 17,
-                        MVSDeportesOrder = 18,
-                        ProgramacionOrder = 19,
-                        MasLeidasOrder = 20,
-                        GuardadosOrder = 21,
-                        MultimediaOrder = 22,
+                        NacionalOrder = 0,
+                        CDMXOrder = 1,
+                        EstadosOrder = 2,
+                        PoliciacaOrder = 3,
+                        NuevoLeonOrder = 4,
+                        MundoOrder = 5,
+                        PodcastOrder = 6,
+                        EconomiaOrder = 7,
+                        EntretenimientoOrder = 8,
+                        TendenciasOrder = 9,
+                        ViralOrder = 10,
+                        SaludBienestarOrder = 11,
+                        CienciaTecnologiaOrder = 12,
+                        MascotasOrder = 13,
+                        OpinionOrder = 14,
+                        EntrevistasOrder = 15,
+                        VideosOrder = 16,
+                        MVSDeportesOrder = 17,
+                        ProgramacionOrder = 18,
+                        MasLeidasOrder = 19,
+                        GuardadosOrder = 20,
                         isDefaultOrder = true,
                     };
                     return Ok(settings);
@@ -264,8 +262,7 @@ namespace MVS_Noticias_API.Controllers
                     MVSDeportesOrder = customSettingsDto.MVSDeportesOrder,
                     ProgramacionOrder = customSettingsDto.ProgramacionOrder,
                     GuardadosOrder = customSettingsDto.GuardadosOrder,
-                    MultimediaOrder = customSettingsDto.MultimediaOrder,
-                    UltimaHoraOrder = customSettingsDto.UltimaHoraOrder,
+                    MasLeidasOrder = customSettingsDto.MasLeidasOrder,
                     isDefaultOrder = false
                 };
 
@@ -323,8 +320,6 @@ namespace MVS_Noticias_API.Controllers
                 customSettings.ProgramacionOrder = customSettingsDto.ProgramacionOrder;
                 customSettings.MasLeidasOrder = customSettingsDto.MasLeidasOrder;
                 customSettings.GuardadosOrder = customSettingsDto.GuardadosOrder;
-                customSettings.MultimediaOrder = customSettingsDto.MultimediaOrder;
-                customSettings.UltimaHoraOrder = customSettingsDto.UltimaHoraOrder;
                 customSettings.ViralOrder = customSettingsDto.ViralOrder;
 
                 customSettings.isDefaultOrder = false;
@@ -598,23 +593,25 @@ namespace MVS_Noticias_API.Controllers
         [HttpPut("user_data")]
         public async Task<ActionResult<User>> UpadateUserData(DataUserDto userData)
         {
-            _logger.LogInformation("Put user data proccess.");
+            _logger.LogInformation("Put user data process.");
 
             try
             {
                 var user = await _dataContext.Users.FirstOrDefaultAsync(x => x.Email == userData.email);
-                var username = await _dataContext.Users.FirstOrDefaultAsync(x => x.Username == userData.Username);
 
                 if (user == null)
                 {
                     return NotFound("Usuario no encontrado.");
                 }
 
-                if (username != null)
+                var usernameExists = await _dataContext.Users.AnyAsync(x => x.Username == userData.Username && x.Id != user.Id);
+
+                if (usernameExists)
                 {
-                    return NotFound("El usuario ya está en uso.");
+                    return BadRequest("El usuario ya está en uso.");
                 }
 
+                // Actualizar datos del usuario
                 user.FullName = userData.FullName;
                 user.Username = userData.Username;
                 user.PhoneNumber = userData.PhoneNumber;
@@ -629,10 +626,11 @@ namespace MVS_Noticias_API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error putting user data: " + ex.Message);
-                return BadRequest("Error putting user data: " + ex.Message);
+                _logger.LogError("Error updating user data: " + ex.Message);
+                return BadRequest("Error updating user data: " + ex.Message);
             }
         }
+
         #endregion
     }
 }

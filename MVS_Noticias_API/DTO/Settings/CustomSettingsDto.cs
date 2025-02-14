@@ -24,7 +24,5 @@
         public int ProgramacionOrder { get; set; }
         public int MasLeidasOrder { get; set; }
         public int GuardadosOrder { get; set; }
-        public int MultimediaOrder { get; set; }
-        public int UltimaHoraOrder { get; set; }
     }
 }

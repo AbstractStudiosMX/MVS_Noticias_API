@@ -51,7 +51,7 @@ namespace MVS_Noticias_API.Controllers
 
             if (isRegistredUserName != null)
             {
-                    return BadRequest("El usuario ya está en uso..");
+                    return BadRequest("El usuario ya está en uso.");
             }
 
             try
